@@ -1,0 +1,5 @@
+<map id="include/benchmark_harness.h" name="include/benchmark_harness.h">
+<area shape="rect" id="Node000001" title="Benchmark harness for MPMC queue implementations with LTTng tracing." alt="" coords="5,5,221,31"/>
+<area shape="rect" id="Node000002" href="$d7/dc3/benchmark__main_8cpp.html" title="Main benchmark driver for MPMC queue implementations." alt="" coords="21,79,206,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,44,116,79,111,79,111,44"/>
+</map>

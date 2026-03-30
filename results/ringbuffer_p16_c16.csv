@@ -1,0 +1,37 @@
+
+╔════════════════════════════════════════════════════════════╗
+║         MPMC Queue Benchmark Suite                         ║
+╚════════════════════════════════════════════════════════════╝
+
+========================================
+Benchmark: BoundedRingBufferMPMC<unsigned long>
+========================================
+Producers: 16 | Consumers: 16 | Items/producer: 10
+Warming up...
+Warm-up complete.
+Running benchmark...
+
+----------------------------------------
+RESULTS
+----------------------------------------
+Total operations: 160
+Duration: 0.01 seconds
+Throughput: 15415.57 ops/sec
+
+Enqueue Latency (ns):
+  Min:    1187
+  Max:    8311
+  Avg:    1803.17
+  P50:    1188
+  P99:    2375
+  P99.9:  8311
+
+Dequeue Latency (ns):
+  Min:    1187
+  Max:    306316
+  Avg:    5750.81
+  P50:    2374
+  P99:    261200
+  P99.9:  306316
+----------------------------------------
+

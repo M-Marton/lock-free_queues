@@ -1,0 +1,33 @@
+<map id="main" name="main">
+<area shape="rect" id="Node000001" title="Main entry point." alt="" coords="5,142,60,167"/>
+<area shape="rect" id="Node000002" href="$d7/dc3/benchmark__main_8cpp.html#aed4a8d43bc7a38e03938eb2f70aebfdf" title="Parse command line arguments." alt="" coords="151,93,244,118"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="59,143,107,127,137,118,139,123,109,132,61,148"/>
+<area shape="rect" id="Node000003" href="$d7/dc3/benchmark__main_8cpp.html#ac7608332d002ef2745359f4cada4afc8" title="Print usage information." alt="" coords="148,142,247,167"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="60,152,134,152,134,157,60,157"/>
+<area shape="rect" id="Node000004" href="$d5/df1/class_benchmark_harness.html#ab98039f28d238ec4a655b92a400b747c" title="Run the benchmark and collect metrics." alt="" coords="108,191,287,217"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="61,162,109,177,134,185,133,190,107,183,59,167"/>
+<area shape="rect" id="Node000005" href="$d5/df1/class_benchmark_harness.html#a8ab58dfdf6efce16c84f6ca728b65335" title="Consumer worker thread function." alt="" coords="335,69,556,109"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="261,189,285,178,300,166,309,153,318,139,333,126,357,113,360,117,336,130,322,143,313,156,304,169,288,182,264,194"/>
+<area shape="rect" id="Node000007" href="$d5/df1/class_benchmark_harness.html#a6b0853eb2949f2a76e003f62b8159c07" title="Demangle C++ type name for readable output." alt="" coords="617,69,840,109"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="251,189,334,169,615,110,616,115,335,175,252,194"/>
+<area shape="rect" id="Node000008" href="$d5/df1/class_benchmark_harness.html#adfe944ea37515cb3c587c0e35d08187b" title="Print benchmark results." alt="" coords="352,184,539,224"/>
+<area shape="poly" id="edge8_Node000004_Node000008" title=" " alt="" coords="287,201,338,201,338,207,287,207"/>
+<area shape="rect" id="Node000011" href="$d5/df1/class_benchmark_harness.html#a954c1917a9fd4513292a909db4dba376" title="Producer worker thread function." alt="" coords="338,5,553,45"/>
+<area shape="poly" id="edge12_Node000004_Node000011" title=" " alt="" coords="268,189,285,178,297,164,304,149,308,118,313,87,320,71,333,55,338,51,342,55,337,59,324,74,318,88,313,119,309,151,302,167,288,182,271,193"/>
+<area shape="rect" id="Node000012" href="$d9/d4a/struct_benchmark_harness_1_1_statistics.html#a4207834ab7ef31ef3af941133bf9337b" title="Reset statistics." alt="" coords="337,248,554,288"/>
+<area shape="poly" id="edge15_Node000004_Node000012" title=" " alt="" coords="248,214,355,242,353,247,247,219"/>
+<area shape="rect" id="Node000013" href="$d9/d4a/struct_benchmark_harness_1_1_statistics.html#ad3991b4b5037b743ac4e71eaa692aa63" title="Sort latencies for percentile calculation." alt="" coords="337,312,554,352"/>
+<area shape="poly" id="edge16_Node000004_Node000013" title=" " alt="" coords="215,215,266,255,336,298,352,305,350,310,333,302,263,259,211,219"/>
+<area shape="rect" id="Node000014" href="$d5/df1/class_benchmark_harness.html#a1efa36c9fd527e1b4eeea4cad7569365" title="Warm&#45;up phase to stabilize system state." alt="" coords="340,377,551,402"/>
+<area shape="poly" id="edge17_Node000004_Node000014" title=" " alt="" coords="208,215,226,246,255,286,292,327,336,362,351,369,349,374,333,366,288,331,251,289,222,249,203,218"/>
+<area shape="rect" id="Node000006" href="$d9/d4a/struct_benchmark_harness_1_1_statistics.html#a5c281bbe2097f2de982f2525cfbe6a16" title="Add a latency measurement." alt="" coords="604,17,853,42"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="540,67,654,42,655,48,541,72"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="556,87,604,87,604,92,556,92"/>
+<area shape="rect" id="Node000009" href="$d9/d4a/struct_benchmark_harness_1_1_statistics.html#aea4d54c650d5a1d1526f8aaa2aaff874" title="Get average latency." alt="" coords="604,163,853,189"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="539,192,590,187,591,192,539,197"/>
+<area shape="rect" id="Node000010" href="$d9/d4a/struct_benchmark_harness_1_1_statistics.html#ad8faaa626f7e0a120b6e260f1dafae2f" title="Get percentile latency." alt="" coords="620,237,837,277"/>
+<area shape="poly" id="edge10_Node000008_Node000010" title=" " alt="" coords="539,219,609,232,608,237,538,224"/>
+<area shape="poly" id="edge11_Node000010_Node000010" title=" " alt="" coords="676,238,673,228,682,218,700,213,729,211,761,213,779,221,777,226,760,219,729,216,701,218,685,223,678,229,681,236"/>
+<area shape="poly" id="edge13_Node000011_Node000006" title=" " alt="" coords="553,24,590,25,590,30,553,30"/>
+<area shape="poly" id="edge14_Node000011_Node000007" title=" " alt="" coords="535,43,627,64,626,69,534,48"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="BoundedRingBufferMPMC::BoundedRingBufferMPMC" name="BoundedRingBufferMPMC::BoundedRingBufferMPMC">
+<area shape="rect" id="Node000001" title="Construct a bounded ring buffer queue." alt="" coords="5,5,201,45"/>
+<area shape="rect" id="Node000002" href="$d3/da8/class_bounded_ring_buffer_m_p_m_c.html#a94ee3d00d2b2b092b7c1f07e8d6b45f3" title="Get the actual capacity of the queue." alt="" coords="249,5,437,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,23,236,23,236,28,202,28"/>
+</map>

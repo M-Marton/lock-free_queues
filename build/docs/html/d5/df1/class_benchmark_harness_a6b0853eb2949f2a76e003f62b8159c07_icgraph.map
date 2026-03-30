@@ -1,0 +1,13 @@
+<map id="BenchmarkHarness::demangle_type_name" name="BenchmarkHarness::demangle_type_name">
+<area shape="rect" id="Node000001" title="Demangle C++ type name for readable output." alt="" coords="604,63,827,103"/>
+<area shape="rect" id="Node000002" href="$d5/df1/class_benchmark_harness.html#a8ab58dfdf6efce16c84f6ca728b65335" title="Consumer worker thread function." alt="" coords="335,5,556,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="606,62,540,48,541,43,607,57"/>
+<area shape="rect" id="Node000003" href="$d5/df1/class_benchmark_harness.html#ab98039f28d238ec4a655b92a400b747c" title="Run the benchmark and collect metrics." alt="" coords="108,70,287,95"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="590,85,287,85,287,80,590,80"/>
+<area shape="rect" id="Node000005" href="$d5/df1/class_benchmark_harness.html#a954c1917a9fd4513292a909db4dba376" title="Producer worker thread function." alt="" coords="338,120,553,160"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="607,108,541,123,540,117,606,103"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="346,51,254,73,252,67,344,46"/>
+<area shape="rect" id="Node000004" href="$d7/dc3/benchmark__main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title="Main entry point." alt="" coords="5,70,60,95"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="94,85,60,85,60,80,94,80"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="344,119,252,98,254,93,346,114"/>
+</map>

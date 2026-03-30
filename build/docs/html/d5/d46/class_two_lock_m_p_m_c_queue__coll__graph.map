@@ -1,0 +1,8 @@
+<map id="TwoLockMPMCQueue&lt; T &gt;" name="TwoLockMPMCQueue&lt; T &gt;">
+<area shape="rect" id="Node000001" title="Lock&#45;free MPMC queue using Michael&#45;Scott algorithm." alt="" coords="5,130,204,155"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="131,5,379,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,56,197,71,120,132,117,128,194,67,216,51"/>
+<area shape="rect" id="Node000003" href="$d0/d94/struct_two_lock_m_p_m_c_queue_1_1_node.html" title="Node in the linked list queue." alt="" coords="228,123,411,163"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="249,59,248,79,254,97,264,110,277,121,273,125,260,114,249,100,243,80,244,59"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="306,111,288,71,271,47,275,44,292,68,311,109"/>
+</map>

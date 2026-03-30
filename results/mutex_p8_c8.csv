@@ -1,0 +1,37 @@
+
+╔════════════════════════════════════════════════════════════╗
+║         MPMC Queue Benchmark Suite                         ║
+╚════════════════════════════════════════════════════════════╝
+
+========================================
+Benchmark: MutexMPMCQueue<unsigned long>
+========================================
+Producers: 8 | Consumers: 8 | Items/producer: 10
+Warming up...
+Warm-up complete.
+Running benchmark...
+
+----------------------------------------
+RESULTS
+----------------------------------------
+Total operations: 80
+Duration: 0.00 seconds
+Throughput: 49949.21 ops/sec
+
+Enqueue Latency (ns):
+  Min:    1187
+  Max:    4749
+  Avg:    2211.29
+  P50:    2374
+  P99:    4749
+  P99.9:  4749
+
+Dequeue Latency (ns):
+  Min:    1187
+  Max:    3562
+  Avg:    1662.16
+  P50:    1188
+  P99:    3562
+  P99.9:  3562
+----------------------------------------
+

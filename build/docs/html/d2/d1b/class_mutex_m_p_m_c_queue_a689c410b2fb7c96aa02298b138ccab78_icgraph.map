@@ -1,0 +1,5 @@
+<map id="MutexMPMCQueue::capacity" name="MutexMPMCQueue::capacity">
+<area shape="rect" id="Node000001" title="Get the capacity of the queue." alt="" coords="332,5,541,31"/>
+<area shape="rect" id="Node000002" href="$d2/d1b/class_mutex_m_p_m_c_queue.html#a0ff2157fd9929785e0e623728f2a8567" title="Construct a bounded mutex queue." alt="" coords="5,5,284,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="318,21,284,21,284,15,318,15"/>
+</map>

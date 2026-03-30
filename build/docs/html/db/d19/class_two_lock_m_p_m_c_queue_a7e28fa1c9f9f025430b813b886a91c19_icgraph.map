@@ -1,0 +1,5 @@
+<map id="TwoLockMPMCQueue::dequeue" name="TwoLockMPMCQueue::dequeue">
+<area shape="rect" id="Node000001" title="Dequeue an element from the queue." alt="" coords="224,13,448,38"/>
+<area shape="rect" id="Node000002" href="$db/d19/class_two_lock_m_p_m_c_queue.html#a5593f2424099d0657cac17ef236a2f54" title="Destructor &#45; cleans up remaining nodes." alt="" coords="5,5,176,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,28,176,28,176,23,210,23"/>
+</map>

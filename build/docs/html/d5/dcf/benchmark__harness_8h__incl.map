@@ -1,0 +1,33 @@
+<map id="include/benchmark_harness.h" name="include/benchmark_harness.h">
+<area shape="rect" id="Node000001" title="Benchmark harness for MPMC queue implementations with LTTng tracing." alt="" coords="651,5,867,31"/>
+<area shape="rect" id="Node000002" href="$d1/d2f/benchmark__mpmc__tp_8h.html" title="LTTng&#45;UST tracepoint definitions for MPMC queue benchmarking." alt="" coords="112,79,287,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="670,33,301,80,300,75,669,28"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="311,79,378,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="676,33,547,53,392,81,391,76,546,48,675,28"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="402,79,466,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="703,33,480,81,480,81,478,76,479,76,702,28"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="491,79,553,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="722,33,567,79,566,74,720,28"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="578,79,645,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="737,33,649,75,647,70,734,28"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="669,79,749,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="753,33,727,69,723,66,749,29"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="773,79,847,104"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="770,29,796,66,792,69,766,33"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="871,79,946,104"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="784,28,873,70,871,75,782,33"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="970,79,1055,104"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="801,28,959,72,958,77,799,33"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="1079,79,1154,104"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="823,28,1066,76,1065,81,821,33"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="1179,79,1255,104"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="851,28,995,48,1166,76,1165,81,994,53,851,33"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="1279,79,1357,104"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="868,26,1050,45,1266,76,1265,81,1050,51,868,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,140,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="180,106,107,147,104,143,178,102"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="164,152,235,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="202,104,202,138,197,138,197,104"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="259,152,435,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="224,102,312,144,310,148,222,106"/>
+</map>

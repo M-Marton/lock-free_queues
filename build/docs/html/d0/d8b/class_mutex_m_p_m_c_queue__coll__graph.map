@@ -1,0 +1,7 @@
+<map id="MutexMPMCQueue&lt; T &gt;" name="MutexMPMCQueue&lt; T &gt;">
+<area shape="rect" id="Node000001" title="Baseline MPMC queue using mutex&#45;based synchronization." alt="" coords="39,93,223,119"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,97,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,39,122,91,118,95,69,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="122,5,301,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,43,144,95,141,91,189,39"/>
+</map>

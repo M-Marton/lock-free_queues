@@ -1,0 +1,8 @@
+/home/marton/workspace/lock-free_queue/build/CMakeFiles/benchmark.dir
+/home/marton/workspace/lock-free_queue/build/CMakeFiles/docs.dir
+/home/marton/workspace/lock-free_queue/build/CMakeFiles/edit_cache.dir
+/home/marton/workspace/lock-free_queue/build/CMakeFiles/rebuild_cache.dir
+/home/marton/workspace/lock-free_queue/build/CMakeFiles/list_install_components.dir
+/home/marton/workspace/lock-free_queue/build/CMakeFiles/install.dir
+/home/marton/workspace/lock-free_queue/build/CMakeFiles/install/local.dir
+/home/marton/workspace/lock-free_queue/build/CMakeFiles/install/strip.dir

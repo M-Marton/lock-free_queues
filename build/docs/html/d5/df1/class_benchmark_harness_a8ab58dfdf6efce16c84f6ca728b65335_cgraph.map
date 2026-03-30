@@ -1,0 +1,7 @@
+<map id="BenchmarkHarness::consumer_worker" name="BenchmarkHarness::consumer_worker">
+<area shape="rect" id="Node000001" title="Consumer worker thread function." alt="" coords="5,27,227,67"/>
+<area shape="rect" id="Node000002" href="$d9/d4a/struct_benchmark_harness_1_1_statistics.html#a5c281bbe2097f2de982f2525cfbe6a16" title="Add a latency measurement." alt="" coords="275,5,524,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,33,263,29,263,35,227,39"/>
+<area shape="rect" id="Node000003" href="$d5/df1/class_benchmark_harness.html#a6b0853eb2949f2a76e003f62b8159c07" title="Demangle C++ type name for readable output." alt="" coords="288,55,511,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="227,56,274,60,274,66,227,61"/>
+</map>

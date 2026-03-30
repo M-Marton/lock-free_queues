@@ -1,0 +1,11 @@
+<map id="src/benchmark_mpmc_provider.c" name="src/benchmark_mpmc_provider.c">
+<area shape="rect" id="Node000001" title="LTTng&#45;UST probe provider for MPMC benchmark tracepoints." alt="" coords="116,5,283,45"/>
+<area shape="rect" id="Node000002" href="$d1/d2f/benchmark__mpmc__tp_8h.html" title="LTTng&#45;UST tracepoint definitions for MPMC queue benchmarking." alt="" coords="112,93,287,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,46,202,79,197,79,197,46"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,140,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="180,121,107,162,104,157,178,116"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="164,167,235,192"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="202,119,202,153,197,153,197,119"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="259,167,435,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="224,116,312,158,310,163,222,121"/>
+</map>

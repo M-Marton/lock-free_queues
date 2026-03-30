@@ -1,0 +1,7 @@
+<map id="BenchmarkHarness::producer_worker" name="BenchmarkHarness::producer_worker">
+<area shape="rect" id="Node000001" title="Producer worker thread function." alt="" coords="5,27,220,67"/>
+<area shape="rect" id="Node000002" href="$d9/d4a/struct_benchmark_harness_1_1_statistics.html#a5c281bbe2097f2de982f2525cfbe6a16" title="Add a latency measurement." alt="" coords="268,5,517,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,33,258,29,258,35,220,39"/>
+<area shape="rect" id="Node000003" href="$d5/df1/class_benchmark_harness.html#a6b0853eb2949f2a76e003f62b8159c07" title="Demangle C++ type name for readable output." alt="" coords="281,55,504,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="220,55,268,60,268,66,220,61"/>
+</map>

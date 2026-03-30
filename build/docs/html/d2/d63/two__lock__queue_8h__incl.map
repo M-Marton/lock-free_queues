@@ -1,0 +1,11 @@
+<map id="include/queues/two_lock_queue.h" name="include/queues/two_lock_queue.h">
+<area shape="rect" id="Node000001" title="Lock&#45;free MPMC queue implementation using Michael&#45;Scott algorithm." alt="" coords="109,5,257,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,72,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,48,73,89,71,84,147,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="96,93,173,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,47,151,83,147,80,169,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="197,93,264,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="197,44,219,80,214,83,192,47"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="288,93,352,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="217,43,289,84,286,89,214,48"/>
+</map>

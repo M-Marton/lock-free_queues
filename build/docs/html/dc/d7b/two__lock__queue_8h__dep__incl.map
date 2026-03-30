@@ -1,0 +1,5 @@
+<map id="include/queues/two_lock_queue.h" name="include/queues/two_lock_queue.h">
+<area shape="rect" id="Node000001" title="Lock&#45;free MPMC queue implementation using Michael&#45;Scott algorithm." alt="" coords="24,5,172,45"/>
+<area shape="rect" id="Node000002" href="$d7/dc3/benchmark__main_8cpp.html" title="Main benchmark driver for MPMC queue implementations." alt="" coords="5,93,191,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,59,101,93,95,93,95,59"/>
+</map>
