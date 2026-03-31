@@ -33,10 +33,12 @@ THREAD_CONFIGS=(
     "4 2"
     "8 4"
     "16 8"
+    "32 32"
+    "32 2"
 )
 
 # Items per producer
-ITEMS=10
+ITEMS=10000
 
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║         MPMC Queue Benchmark Suite                         ║${NC}"
