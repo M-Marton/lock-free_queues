@@ -25,16 +25,13 @@ QUEUES=("mutex" "twolock" "ringbuffer")
 
 # Thread configurations (producers, consumers)
 THREAD_CONFIGS=(
-    "1 1"
-    "2 2"
-    "4 4"
-    "8 8"
-    "16 16"
-    "4 2"
-    "8 4"
-    "16 8"
-    "32 32"
+
+    "32 1"
     "32 2"
+    "32 4"
+    "32 8"
+    "32 16"
+    "32 32"
 )
 
 # Items per producer

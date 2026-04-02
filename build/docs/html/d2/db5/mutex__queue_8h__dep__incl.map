@@ -1,5 +1,0 @@
-<map id="include/queues/mutex_queue.h" name="include/queues/mutex_queue.h">
-<area shape="rect" id="Node000001" title="Baseline MPMC queue implementation using std::mutex and condition variables." alt="" coords="15,5,181,45"/>
-<area shape="rect" id="Node000002" href="$d7/dc3/benchmark__main_8cpp.html" title="Main benchmark driver for MPMC queue implementations." alt="" coords="5,93,191,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,59,101,93,95,93,95,59"/>
-</map>

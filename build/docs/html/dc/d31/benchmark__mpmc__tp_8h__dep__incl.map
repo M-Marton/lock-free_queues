@@ -1,9 +1,0 @@
-<map id="include/benchmark_mpmc_tp.h" name="include/benchmark_mpmc_tp.h">
-<area shape="rect" id="Node000001" title="LTTng&#45;UST tracepoint definitions for MPMC queue benchmarking." alt="" coords="108,5,335,31"/>
-<area shape="rect" id="Node000002" href="$d9/d17/benchmark__harness_8h.html" title="Benchmark harness for MPMC queue implementations with LTTng tracing." alt="" coords="5,86,221,111"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,41,131,88,128,84,193,37"/>
-<area shape="rect" id="Node000004" href="$d6/d67/benchmark__mpmc__provider_8c.html" title="LTTng&#45;UST probe provider for MPMC benchmark tracepoints." alt="" coords="246,79,413,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="250,37,305,76,302,81,247,41"/>
-<area shape="rect" id="Node000003" href="$d7/dc3/benchmark__main_8cpp.html" title="Main benchmark driver for MPMC queue implementations." alt="" coords="21,167,206,192"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="116,125,116,166,111,166,111,125"/>
-</map>

@@ -1,7 +1,0 @@
-<map id="BenchmarkHarness::consumer_worker" name="BenchmarkHarness::consumer_worker">
-<area shape="rect" id="Node000001" title="Consumer worker thread function." alt="" coords="335,5,556,45"/>
-<area shape="rect" id="Node000002" href="$d5/df1/class_benchmark_harness.html#ab98039f28d238ec4a655b92a400b747c" title="Run the benchmark and collect metrics." alt="" coords="108,13,287,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="321,28,287,28,287,23,321,23"/>
-<area shape="rect" id="Node000003" href="$d7/dc3/benchmark__main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title="Main entry point." alt="" coords="5,13,60,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="94,28,60,28,60,23,94,23"/>
-</map>

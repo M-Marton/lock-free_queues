@@ -1,6 +1,6 @@
 /results/*
-!/results/plots
+#!/results/plots
 gitremote
 /build/*
-!/build/benchmark
-!/build/docs
+#!/build/benchmark
+#!/build/docs

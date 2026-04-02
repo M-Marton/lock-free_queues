@@ -1,7 +1,0 @@
-<map id="MutexMPMCQueue::size" name="MutexMPMCQueue::size">
-<area shape="rect" id="Node000001" title="Get the current size of the queue." alt="" coords="249,31,429,56"/>
-<area shape="rect" id="Node000002" href="$d2/d1b/class_mutex_m_p_m_c_queue.html#a868cdd7c22cb1b4ac9caf13b35803ed4" title="Check if the queue is empty." alt="" coords="5,5,201,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="236,35,201,31,202,26,236,30"/>
-<area shape="rect" id="Node000003" href="$d2/d1b/class_mutex_m_p_m_c_queue.html#abc2a4e7af8637d55ab91f261a37a8802" title="Check if the queue is full." alt="" coords="16,55,191,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="236,57,191,61,191,56,235,51"/>
-</map>

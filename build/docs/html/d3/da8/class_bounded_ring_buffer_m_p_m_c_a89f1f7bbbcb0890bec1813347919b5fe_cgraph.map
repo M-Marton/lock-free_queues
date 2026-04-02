@@ -1,5 +1,0 @@
-<map id="BoundedRingBufferMPMC::full" name="BoundedRingBufferMPMC::full">
-<area shape="rect" id="Node000001" title="Check if the queue is full." alt="" coords="5,5,193,45"/>
-<area shape="rect" id="Node000002" href="$d3/da8/class_bounded_ring_buffer_m_p_m_c.html#a024666dadf48e4862ed85abcb21a5d59" title="Get the current number of elements in the queue." alt="" coords="241,5,429,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,23,227,23,227,28,194,28"/>
-</map>

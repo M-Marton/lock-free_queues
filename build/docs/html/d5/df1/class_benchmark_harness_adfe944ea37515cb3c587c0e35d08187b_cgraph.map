@@ -1,8 +1,0 @@
-<map id="BenchmarkHarness::print_results" name="BenchmarkHarness::print_results">
-<area shape="rect" id="Node000001" title="Print benchmark results." alt="" coords="5,39,192,79"/>
-<area shape="rect" id="Node000002" href="$d9/d4a/struct_benchmark_harness_1_1_statistics.html#aea4d54c650d5a1d1526f8aaa2aaff874" title="Get average latency." alt="" coords="240,5,489,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,42,269,30,269,35,193,48"/>
-<area shape="rect" id="Node000003" href="$d9/d4a/struct_benchmark_harness_1_1_statistics.html#ad8faaa626f7e0a120b6e260f1dafae2f" title="Get percentile latency." alt="" coords="256,79,473,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,71,243,78,242,84,192,76"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="316,80,313,70,321,60,338,55,365,53,395,55,412,63,410,68,394,61,365,58,339,60,324,65,318,71,321,78"/>
-</map>

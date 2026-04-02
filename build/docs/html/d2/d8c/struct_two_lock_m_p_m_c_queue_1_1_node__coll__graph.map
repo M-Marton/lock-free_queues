@@ -1,8 +1,0 @@
-<map id="TwoLockMPMCQueue&lt; T &gt;::Node" name="TwoLockMPMCQueue&lt; T &gt;::Node">
-<area shape="rect" id="Node000001" title="Node in the linked list queue." alt="" coords="5,108,188,148"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="115,5,363,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,55,125,110,122,106,200,51"/>
-<area shape="rect" id="Node000003" href="$d0/d94/struct_two_lock_m_p_m_c_queue_1_1_node.html" title="Node in the linked list queue." alt="" coords="212,108,395,148"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="234,59,234,71,238,83,248,95,261,106,257,110,244,99,233,85,229,72,228,59"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="287,97,272,71,254,47,258,44,276,68,291,94"/>
-</map>

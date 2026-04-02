@@ -1,5 +1,0 @@
-var searchData=
-[
-  ['empty_0',['empty',['../d2/d1b/class_mutex_m_p_m_c_queue.html#a868cdd7c22cb1b4ac9caf13b35803ed4',1,'MutexMPMCQueue::empty()'],['../d3/da8/class_bounded_ring_buffer_m_p_m_c.html#a36c66f006ad2e93e372d918fc4d10fc0',1,'BoundedRingBufferMPMC::empty() const'],['../d3/da8/class_bounded_ring_buffer_m_p_m_c.html#a36c66f006ad2e93e372d918fc4d10fc0',1,'BoundedRingBufferMPMC::empty() const'],['../db/d19/class_two_lock_m_p_m_c_queue.html#aeedd52e3fb886894cb2ce66e6ef6d4d0',1,'TwoLockMPMCQueue::empty()']]],
-  ['enqueue_1',['enqueue',['../d2/d1b/class_mutex_m_p_m_c_queue.html#a2c8873ccc599a6bbd50dfe3829976be8',1,'MutexMPMCQueue::enqueue()'],['../d3/da8/class_bounded_ring_buffer_m_p_m_c.html#ae9b53cf7e7bcbe41f98e23a51ff1fa49',1,'BoundedRingBufferMPMC::enqueue(T item)'],['../d3/da8/class_bounded_ring_buffer_m_p_m_c.html#ae9b53cf7e7bcbe41f98e23a51ff1fa49',1,'BoundedRingBufferMPMC::enqueue(T item)'],['../db/d19/class_two_lock_m_p_m_c_queue.html#a67b9a4acf47d08db5aaf3b813b998e1c',1,'TwoLockMPMCQueue::enqueue()']]]
-];
