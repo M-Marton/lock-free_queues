@@ -4,6 +4,7 @@
 # @author MPMC Benchmark Project
 # @version 1.0.0
 
+
 set -e
 
 # Colors for output
@@ -17,7 +18,9 @@ BENCHMARK_BIN="./build/benchmark"
 RESULTS_DIR="./results"
 TRACE_DIR="/tmp/lttng-traces"
 
+echo -e "${RED}Clear results... ${NC}"
 # Create results directory
+rm -rf "$RESULTS_DIR"
 mkdir -p "$RESULTS_DIR"
 
 # Queue types to test
@@ -26,16 +29,27 @@ QUEUES=("mutex" "twolock" "ringbuffer")
 # Thread configurations (producers, consumers)
 THREAD_CONFIGS=(
 
-    "32 1"
-    "32 2"
-    "32 4"
-    "32 8"
-    "32 16"
-    "32 32"
+    "1 1"
+    "2 2"
+    "2 1"
+    "4 1"
+    "4 4"
+    "8 1"
+    "8 2"
+    "8 4"
+    "8 8"
+    "1 8"
+    "2 8"
+    "4 8"
+    "16 1"
+    "16 2"
+    "16 4"
+    "16 8"
+    "16 16"
 )
 
 # Items per producer
-ITEMS=10000
+ITEMS=1000000
 
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║         MPMC Queue Benchmark Suite                         ║${NC}"
@@ -143,3 +157,5 @@ done
 echo -e "\n${GREEN}All benchmarks complete!${NC}"
 echo "Results saved in $RESULTS_DIR/"
 
+
+./scripts/analyze_results.py

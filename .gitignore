@@ -1,6 +1,0 @@
-/results/*
-#!/results/plots
-gitremote
-/build/*
-#!/build/benchmark
-#!/build/docs
