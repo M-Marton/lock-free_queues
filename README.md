@@ -27,8 +27,13 @@ This project implements and benchmarks various Multi-Producer Multi-Consumer (MP
 ### Ubuntu/Debian
 ```bash
 sudo apt update
-sudo apt install build-essential cmake git
-sudo apt install lttng-tools lttng-ust liblttng-ust-dev
-sudo apt install doxygen graphviz
-sudo apt install python3 python3-pip
-pip3 install pandas matplotlib numpy
+sudo apt install build-essential cmake git lttng-tools liblttng-ust-dev doxygen graphviz python3 python3-pip python3-pandas python3-matplotlib python3-numpy
+```
+### Build
+```bash
+mkdir build
+cd build
+cmake ..
+make clean
+make -j$(nproc)
+```
