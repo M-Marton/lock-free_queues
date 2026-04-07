@@ -1,27 +1,35 @@
-# MPMC Queue Benchmark Suite
+# MPMC Queue Benchmark
 
-Comprehensive benchmarking of MPMC queue implementations with LTTng tracing, deadlock detection, and automatic retry.
+Controlled CPU scaling benchmark for MPMC queue implementations using cgroups.
 
 ## Implemented Queues
 
 | Queue | Type | Description |
 |-------|------|-------------|
-| mutex | Blocking | Baseline with std::mutex |
-| twolock | Lock-free | Michael-Scott algorithm |
-| twolock_hazard | Lock-free | Michael-Scott with hazard pointers |
-| ringbuffer | Lock-free | Bounded ring buffer |
-| scq | Lock-free | Scalable Circular Queue (fetch-and-add) |
-| disruptor | Lock-free | LMAX Disruptor pattern |
+| `mutex` | Blocking | Baseline with std::mutex |
+| `ringbuffer` | Lock-free | CAS-based circular buffer |
+| `bounded` | Lock-free | Fetch-and-add based MPMC queue |
+
+## Why Only These Three?
+
+- **Mutex**: Baseline comparison (shows why lock-free matters)
+- **RingBuffer**: Proven lock-free implementation, cache-friendly
+- **BoundedMPMC**: Simple, deadlock-free, good scalability
 
 ## Dependencies
 
-sudo apt install build-essential cmake git lttng-tools liblttng-ust-dev doxygen graphviz python3 python3-pip python3-pandas python3-matplotlib python3-numpy python3-seaborn
+```
+sudo apt install build-essential git lttng-tools liblttng-ust-dev python3 python3-pip python3-pandas python3-matplotlib python3-numpy python3-seaborn
+```
 
-
-
-## Build
+## Build & Run
 
 ```bash
-mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make -j$(nproc)
+# Run full benchmark (tests 1,2,4,8,12 cores)
+sudo ./run.sh
+
+# Single test
+./benchmark -t ringbuffer -p 8 -c 8 -i 500000
+
+# Analyze results
+python3 analyze.py
