@@ -1,39 +1,27 @@
-# MPMC Queue Benchmarking Project
+# MPMC Queue Benchmark Suite
 
-## Overview
-
-This project implements and benchmarks various Multi-Producer Multi-Consumer (MPMC) queue implementations on Linux, with integrated LTTng tracing for detailed performance analysis.
+Comprehensive benchmarking of MPMC queue implementations with LTTng tracing, deadlock detection, and automatic retry.
 
 ## Implemented Queues
 
-| Queue | Type | Locking | Characteristics |
-|-------|------|---------|-----------------|
-| `MutexMPMCQueue` | Baseline | Mutex + Condition Variables | Blocking, simple |
-| `TwoLockMPMCQueue` | Lock-free | Michael-Scott algorithm | Unbounded, classic lock-free |
-| `BoundedRingBufferMPMC` | Lock-free | Atomic indices with ring buffer | Bounded, high performance |
+| Queue | Type | Description |
+|-------|------|-------------|
+| mutex | Blocking | Baseline with std::mutex |
+| twolock | Lock-free | Michael-Scott algorithm |
+| twolock_hazard | Lock-free | Michael-Scott with hazard pointers |
+| ringbuffer | Lock-free | Bounded ring buffer |
+| scq | Lock-free | Scalable Circular Queue (fetch-and-add) |
+| disruptor | Lock-free | LMAX Disruptor pattern |
 
-## Features
+## Dependencies
 
-- ✅ Multiple MPMC queue implementations
-- ✅ Configurable producer/consumer thread counts
-- ✅ Detailed latency statistics (min, max, avg, p50, p99, p99.9)
-- ✅ LTTng-UST tracepoints for performance analysis
-- ✅ Doxygen documentation
-- ✅ Benchmark automation scripts
-- ✅ Result analysis with Python
+sudo apt install build-essential cmake git lttng-tools liblttng-ust-dev doxygen graphviz python3 python3-pip python3-pandas python3-matplotlib python3-numpy python3-seaborn
 
-## Prerequisites
 
-### Ubuntu/Debian
+
+## Build
+
 ```bash
-sudo apt update
-sudo apt install build-essential cmake git lttng-tools liblttng-ust-dev doxygen graphviz python3 python3-pip python3-pandas python3-matplotlib python3-numpy
-```
-### Build
-```bash
-mkdir build
-cd build
-cmake ..
-make clean
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j$(nproc)
-```

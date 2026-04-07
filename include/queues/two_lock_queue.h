@@ -1,14 +1,9 @@
-/**
- * @file two_lock_queue.h
- * @brief Lock-free MPMC queue with proper memory management
- */
-
-#pragma once
+#ifndef TWO_LOCK_QUEUE_H
+#define TWO_LOCK_QUEUE_H
 
 #include <atomic>
 #include <memory>
 #include <cstdint>
-#include <thread>
 
 template<typename T>
 class TwoLockMPMCQueue {
@@ -25,15 +20,6 @@ private:
     std::atomic<Node*> tail_;
     std::atomic<uint64_t> size_{0};
     
-    /**
-     * @brief Helper to safely delete nodes (handles race conditions)
-     */
-    static void safe_delete(Node* node) {
-        if (node) {
-            delete node;
-        }
-    }
-    
 public:
     TwoLockMPMCQueue() {
         Node* dummy = new Node();
@@ -42,13 +28,9 @@ public:
     }
     
     ~TwoLockMPMCQueue() {
-        // Drain the queue
         T item;
-        while (dequeue(item)) {
-            // Continue draining
-        }
+        while (dequeue(item)) {}
         
-        // Clean up remaining nodes
         Node* current = head_.load(std::memory_order_relaxed);
         while (current) {
             Node* next = current->next.load(std::memory_order_relaxed);
@@ -61,28 +43,24 @@ public:
         Node* new_node = new Node(std::move(item));
         
         while (true) {
-            Node* last = tail_.load(std::memory_order_acquire);
-            Node* next = last->next.load(std::memory_order_acquire);
+            Node* tail = tail_.load(std::memory_order_acquire);
+            Node* next = tail->next.load(std::memory_order_acquire);
             
-            // Check if tail hasn't been changed by another thread
-            if (last != tail_.load(std::memory_order_acquire)) {
+            if (tail != tail_.load(std::memory_order_acquire)) {
                 continue;
             }
             
             if (next != nullptr) {
-                // Tail is lagging, help advance it
-                tail_.compare_exchange_weak(last, next,
+                tail_.compare_exchange_weak(tail, next,
                     std::memory_order_release,
                     std::memory_order_relaxed);
                 continue;
             }
             
-            // Try to link the new node
-            if (last->next.compare_exchange_weak(next, new_node,
+            if (tail->next.compare_exchange_weak(next, new_node,
                     std::memory_order_release,
                     std::memory_order_relaxed)) {
-                // Success, advance tail
-                tail_.compare_exchange_weak(last, new_node,
+                tail_.compare_exchange_weak(tail, new_node,
                     std::memory_order_release,
                     std::memory_order_relaxed);
                 size_.fetch_add(1, std::memory_order_release);
@@ -93,37 +71,32 @@ public:
     
     bool dequeue(T& item) {
         while (true) {
-            Node* first = head_.load(std::memory_order_acquire);
-            Node* last = tail_.load(std::memory_order_acquire);
-            Node* next = first->next.load(std::memory_order_acquire);
+            Node* head = head_.load(std::memory_order_acquire);
+            Node* tail = tail_.load(std::memory_order_acquire);
+            Node* next = head->next.load(std::memory_order_acquire);
             
-            // Check if head hasn't been changed by another thread
-            if (first != head_.load(std::memory_order_acquire)) {
+            if (head != head_.load(std::memory_order_acquire)) {
                 continue;
             }
             
-            if (first == last) {
+            if (head == tail) {
                 if (next == nullptr) {
-                    return false;  // Queue empty
+                    return false;
                 }
-                // Tail is lagging, help advance it
-                tail_.compare_exchange_weak(last, next,
+                tail_.compare_exchange_weak(tail, next,
                     std::memory_order_release,
                     std::memory_order_relaxed);
                 continue;
             }
             
-            // Queue has elements
             if (next && next->data) {
                 item = std::move(*next->data);
             }
             
-            // Try to advance head
-            if (head_.compare_exchange_weak(first, next,
+            if (head_.compare_exchange_weak(head, next,
                     std::memory_order_release,
                     std::memory_order_relaxed)) {
-                // Delete the old dummy node
-                delete first;
+                delete head;
                 size_.fetch_sub(1, std::memory_order_release);
                 return true;
             }
@@ -136,7 +109,8 @@ public:
     
     bool empty() const { return size() == 0; }
     
-    // Disable copying
     TwoLockMPMCQueue(const TwoLockMPMCQueue&) = delete;
     TwoLockMPMCQueue& operator=(const TwoLockMPMCQueue&) = delete;
 };
+
+#endif
