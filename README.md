@@ -1,6 +1,6 @@
-# MPMC Queue Benchmark
+# MPMC Queue Benchmark with LTTng Tracing
 
-Controlled CPU scaling benchmark for MPMC queue implementations using cgroups.
+Full performance measurement using LTTng-UST tracepoints.
 
 ## Implemented Queues
 
@@ -19,7 +19,7 @@ Controlled CPU scaling benchmark for MPMC queue implementations using cgroups.
 ## Dependencies
 
 ```
-sudo apt install build-essential git lttng-tools liblttng-ust-dev python3 python3-pip python3-pandas python3-matplotlib python3-numpy python3-seaborn
+sudo apt install build-essential git lttng-tools liblttng-ust-dev python3 python3-pip python3-pandas python3-matplotlib python3-numpy python3-seaborn parallel
 ```
 
 ## Build & Run
@@ -27,9 +27,6 @@ sudo apt install build-essential git lttng-tools liblttng-ust-dev python3 python
 ```bash
 # Run full benchmark (tests 1,2,4,8,12 cores)
 sudo ./run.sh
-
-# Single test
-./benchmark -t ringbuffer -p 8 -c 8 -i 500000
 
 # Analyze results
 python3 analyze.py

@@ -1,177 +1,240 @@
 #!/bin/bash
-# MPMC Benchmark Runner with cgroup CPU limiting and LTTng support
+# MPMC Benchmark - Weighted parallel execution with CPU core budget
 
 set -u
 
-# Get the original user who ran sudo
 ORIGINAL_USER=${SUDO_USER:-$USER}
-ORIGINAL_HOME=$(eval echo ~$ORIGINAL_USER)
-
 RESULTS_DIR="./results"
-DATA_DIR="$RESULTS_DIR/data"
 TRACES_DIR="$RESULTS_DIR/traces"
-mkdir -p "$DATA_DIR" "$TRACES_DIR"
+DATA_DIR="$RESULTS_DIR/data"
+mkdir -p "$TRACES_DIR" "$DATA_DIR"
 
-# Fix permissions for the original user
-chown -R $ORIGINAL_USER:$ORIGINAL_USER "$RESULTS_DIR" 2>/dev/null || true
-
-# ============================================================================
-# Configuration
-# ============================================================================
-QUEUES=("mutex" "ringbuffer" "bounded")
-CORES=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
-PRODUCERS=16
-CONSUMERS=16
-ITEMS=1000000
-CAPACITY=100000
-TIMEOUT=120
-RETRIES=3
-
-# LTTng configuration (set to 0 to disable)
-LTTNG_ENABLED=${LTTNG_ENABLED:-0}  # Disabled by default since no lttng-ust
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-# Results file
-RESULT_CSV="$DATA_DIR/results.csv"
-echo "queue,cores,throughput_mops,enqueue_p99_ns,dequeue_p99_ns,retries,trace_file" > "$RESULT_CSV"
-
-# ============================================================================
-# LTTng setup (disabled)
-# ============================================================================
-setup_lttng() {
-    return 1
-}
-
-stop_lttng() {
-    return 0
-}
-
-# ============================================================================
-# cgroup helpers (cgroups v2)
-# ============================================================================
-CGROUP_PATH="/sys/fs/cgroup/benchmark_$$"
-
-setup_cgroup() {
-    local cores=$1
-    sudo mkdir -p "$CGROUP_PATH" 2>/dev/null || true
-    
-    local period=100000
-    local quota=$((cores * period))
-    echo "$quota $period" | sudo tee "$CGROUP_PATH/cpu.max" 2>/dev/null || true
-}
-
-cleanup_cgroup() {
-    sudo rmdir "$CGROUP_PATH" 2>/dev/null || true
-}
-
-# ============================================================================
-# Build
-# ============================================================================
-echo "Building benchmark..."
-
-# Build without LTTng for simplicity
-g++ -O3 -march=native -pthread -std=c++17 benchmark.cpp -o benchmark 2>/dev/null
-
-if [ ! -f "./benchmark" ]; then
-    echo "ERROR: Compilation failed"
+# Check LTTng tools
+if ! command -v lttng &> /dev/null; then
+    echo "ERROR: lttng not installed. Please install lttng-tools and lttng-ust."
     exit 1
 fi
 
-# ============================================================================
-# Benchmark runner
-# ============================================================================
-run_bench() {
+# Build
+echo "Building benchmark with LTTng..."
+mkdir -p build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
+cd ..
+
+# Configuration matrix
+QUEUES=("mutex" "ringbuffer" "bounded" "hazard")
+CORES=(1 2 4 8 12 15)
+RATIOS=(
+    "1 1" "1 4" "1 10"
+    "4 1" "4 4" "4 10"
+    "10 1" "10 4" "10 10"
+    "16 16"
+)
+ITEMS_LIST=(50000 500000)
+CAPACITY_LIST=(1000 100000)
+
+TIMEOUT=180
+RUNS_PER_CONFIG=5
+CPU_BUDGET=15          # Maximum total cores used concurrently
+
+# Summary CSV
+SUMMARY_CSV="$DATA_DIR/summary_lttng.csv"
+echo "queue,cores,producers,consumers,items,capacity,run,throughput_mops,enqueue_p99_ns,dequeue_p99_ns" > "$SUMMARY_CSV"
+
+# Temp directory for per-run results
+TMP_DIR=$(mktemp -d)
+trap "rm -rf $TMP_DIR" EXIT
+
+# Function to run a single configuration (background)
+run_config() {
     local queue=$1
     local cores=$2
-    
-    printf "  %-12s cores=%-2d : " "$queue" "$cores"
-    
-    local retry=0
-    local success=0
-    local throughput=""
-    local enq_p99=""
-    local deq_p99=""
-    local trace_file=""
-    
-    while [ $retry -lt $RETRIES ] && [ $success -eq 0 ]; do
-        local session="bench_${queue}_c${cores}"
-        trace_file="$TRACES_DIR/$session"
-        local output="$DATA_DIR/${queue}_c${cores}_run${retry}.log"
-        
-        # Setup cgroup
-        setup_cgroup $cores
-        
-        # Run in cgroup
-        (
-            echo $$ > "$CGROUP_PATH/cgroup.procs" 2>/dev/null || true
-            timeout $TIMEOUT ./benchmark -t "$queue" -p $PRODUCERS -c $CONSUMERS -i $ITEMS -s $CAPACITY > "$output" 2>&1
-        )
-        local exit_code=$?
-        
-        cleanup_cgroup
-        
-        if [ $exit_code -eq 0 ] && [ -f "$output" ]; then
-            # Extract throughput - look for number before "M ops/sec"
-            throughput=$(grep "Throughput:" "$output" | sed 's/.*Throughput: //' | awk '{print $1}')
-            enq_p99=$(grep "Enqueue.*p99=" "$output" | sed 's/.*p99=//' | awk '{print $1}')
-            deq_p99=$(grep "Dequeue.*p99=" "$output" | sed 's/.*p99=//' | awk '{print $1}')
-            
-            # Validate throughput is a number
-            if [[ "$throughput" =~ ^[0-9]+\.?[0-9]*$ ]] && [ -n "$throughput" ] && [ "$throughput" != "0" ]; then
-                success=1
-                echo -e "${GREEN}✓${NC} $throughput M ops/sec"
-            else
-                echo -e "${YELLOW}⚠${NC} Invalid throughput: '$throughput'"
-            fi
-        fi
-        
-        retry=$((retry + 1))
-    done
-    
-    if [ $success -eq 1 ]; then
-        echo "$queue,$cores,$throughput,$enq_p99,$deq_p99,$retry,$trace_file" >> "$RESULT_CSV"
+    local prod=$3
+    local cons=$4
+    local items=$5
+    local cap=$6
+    local run=$7
+    local tmp_out=$8
+    local job_id=$9
+
+    local session="bench_${queue}_p${prod}c${cons}_i${items}_s${cap}_c${cores}_run${run}"
+    local trace_dir="$TRACES_DIR/$session"
+    local output="$DATA_DIR/${session}.log"
+
+    # Create LTTng session
+    lttng create "$session" --output="$trace_dir" > /dev/null 2>&1
+    lttng enable-event --userspace mpmc_benchmark:queue_op > /dev/null 2>&1
+    lttng add-context --userspace -t vtid -t vpid -t procname > /dev/null 2>&1
+    lttng start > /dev/null 2>&1
+
+    # Run with cgroup CPU limit
+    local cgroup_name="mpmc_$$_${queue}_c${cores}_r${run}"
+    sudo mkdir -p "/sys/fs/cgroup/$cgroup_name" 2>/dev/null
+    echo "$((cores * 100000)) 100000" | sudo tee "/sys/fs/cgroup/$cgroup_name/cpu.max" > /dev/null
+
+    if [ "$queue" == "hazard" ]; then
+        sudo cgexec -g cpu:"$cgroup_name" timeout $TIMEOUT ./build/benchmark \
+            -t "$queue" -p "$prod" -c "$cons" -i "$items" -s 0 \
+            > "$output" 2>&1
     else
-        echo -e "${RED}✗${NC} FAILED after $RETRIES attempts"
-        echo "$queue,$cores,0,0,0,$RETRIES," >> "$RESULT_CSV"
+        sudo cgexec -g cpu:"$cgroup_name" timeout $TIMEOUT ./build/benchmark \
+            -t "$queue" -p "$prod" -c "$cons" -i "$items" -s "$cap" \
+            > "$output" 2>&1
+    fi
+
+    local exit_code=$?
+    sudo rmdir "/sys/fs/cgroup/$cgroup_name" 2>/dev/null
+
+    lttng stop > /dev/null 2>&1
+    lttng destroy > /dev/null 2>&1
+
+    if [ $exit_code -eq 0 ]; then
+        throughput=$(grep "Throughput:" "$output" | head -1 | awk '{print $2}')
+        if [[ "$throughput" =~ ^[0-9]+\.?[0-9]*$ ]]; then
+            echo "$queue,$cores,$prod,$cons,$items,$cap,$run,$throughput,0,0" >> "$tmp_out"
+            echo "OK"
+        else
+            echo "FAIL"
+        fi
+    else
+        echo "FAIL"
     fi
 }
 
-# ============================================================================
-# Main
-# ============================================================================
-echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║     MPMC Queue Benchmark - Controlled CPU Scaling          ║${NC}"
-echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}"
-echo ""
-echo "Configuration:"
-echo "  Producers: $PRODUCERS | Consumers: $CONSUMERS"
-echo "  Items per producer: $ITEMS"
-echo "  Queue capacity: $CAPACITY"
-echo "  CPU cores to test: ${CORES[@]}"
-echo ""
+export -f run_config
+export TIMEOUT CPU_BUDGET TRACES_DIR DATA_DIR
 
-for cores in "${CORES[@]}"; do
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Testing with $cores CPU core(s)${NC}"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    
-    for queue in "${QUEUES[@]}"; do
-        run_bench "$queue" "$cores"
+# Generate all configurations as an array of strings
+configs=()
+for queue in "${QUEUES[@]}"; do
+    for cores in "${CORES[@]}"; do
+        for ratio in "${RATIOS[@]}"; do
+            prod=$(echo $ratio | cut -d' ' -f1)
+            cons=$(echo $ratio | cut -d' ' -f2)
+            for items in "${ITEMS_LIST[@]}"; do
+                for cap in "${CAPACITY_LIST[@]}"; do
+                    for run in $(seq 1 $RUNS_PER_CONFIG); do
+                        configs+=("$queue|$cores|$prod|$cons|$items|$cap|$run")
+                    done
+                done
+            done
+        done
     done
-    echo ""
 done
 
-# Fix permissions for analysis
-chown -R $ORIGINAL_USER:$ORIGINAL_USER "$RESULTS_DIR" 2>/dev/null || true
-
-echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}Benchmark complete!${NC}"
-echo "Results: $RESULT_CSV"
+total=${#configs[@]}
+echo "Total test cases: $total"
+echo "CPU budget: $CPU_BUDGET cores (sum of per-benchmark core limits)"
 echo ""
-echo "Run analysis: python3 analyze.py"
+
+# Weighted job scheduler
+running_pids=()
+running_cores=()
+tmp_results="$TMP_DIR/results.tmp"
+touch "$tmp_results"
+
+completed=0
+next_config_index=0
+
+# Function to start a new job if budget allows
+start_job() {
+    local config="${configs[$next_config_index]}"
+    IFS='|' read -r queue cores prod cons items cap run <<< "$config"
+    # Calculate current total cores
+    local total_cores=0
+    for c in "${running_cores[@]}"; do
+        total_cores=$((total_cores + c))
+    done
+    # Check if adding this job would exceed budget (unless it's the only job and its cores > budget)
+    if [ $((total_cores + cores)) -le $CPU_BUDGET ] || [ ${#running_pids[@]} -eq 0 ]; then
+        # Start job
+        local tmp_out="$TMP_DIR/out_${queue}_${cores}_${prod}_${cons}_${items}_${cap}_${run}"
+        run_config "$queue" "$cores" "$prod" "$cons" "$items" "$cap" "$run" "$tmp_results" "$next_config_index" &
+        local pid=$!
+        running_pids+=($pid)
+        running_cores+=($cores)
+        echo "Started: $queue cores=$cores P=$prod C=$cons (budget: $((total_cores + cores))/$CPU_BUDGET)"
+        next_config_index=$((next_config_index + 1))
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Main scheduling loop
+while [ $completed -lt $total ]; do
+    # Try to start new jobs
+    while [ $next_config_index -lt $total ]; do
+        if start_job; then
+            continue
+        else
+            break
+        fi
+    done
+
+    # Wait for any job to finish
+    if [ ${#running_pids[@]} -gt 0 ]; then
+        wait -n
+        # Remove finished jobs from arrays (no local, just reassign)
+        new_pids=()
+        new_cores=()
+        for i in "${!running_pids[@]}"; do
+            if kill -0 "${running_pids[$i]}" 2>/dev/null; then
+                new_pids+=("${running_pids[$i]}")
+                new_cores+=("${running_cores[$i]}")
+            else
+                completed=$((completed + 1))
+                echo "Completed: $completed / $total"
+            fi
+        done
+        running_pids=("${new_pids[@]}")
+        running_cores=("${new_cores[@]}")
+    else
+        # No running jobs, but still configs left? Should not happen
+        break
+    fi
+done
+
+# Combine results into summary CSV
+cat "$tmp_results" >> "$SUMMARY_CSV"
+
+# Compute and display summary statistics
+echo ""
+echo "========================================="
+echo "Summary statistics (averaged over runs):"
+echo "========================================="
+
+awk -F',' '
+NR>1 {
+    key = $1","$2","$3","$4","$5","$6
+    sum_throughput[key] += $8
+    count[key]++
+}
+END {
+    for (key in sum_throughput) {
+        avg = sum_throughput[key] / count[key]
+        printf "%-40s avg throughput = %.2f M ops/sec (based on %d runs)\n", key, avg, count[key]
+    }
+}' "$SUMMARY_CSV" | sort
+
+echo ""
+echo "Relative performance (vs ringbuffer) at max cores (15):"
+awk -F',' '
+NR>1 && $2==15 && $1!="ringbuffer" {
+    key = $1","$3","$4","$5","$6
+    sum[$1] += $8; cnt[$1]++
+}
+END {
+    for (q in sum) {
+        avg[q] = sum[q]/cnt[q]
+    }
+    baseline = avg["ringbuffer"]
+    for (q in avg) {
+        if (q != "ringbuffer") printf "%s: %.2fx\n", q, avg[q]/baseline
+    }
+}' "$SUMMARY_CSV"
+
+echo ""
+echo "Benchmark finished. Traces saved in $TRACES_DIR"
+echo "Run python3 analyze_lttng.py for detailed plots and statistics."

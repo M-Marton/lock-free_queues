@@ -1,288 +1,217 @@
 #!/usr/bin/env python3
+"""
+MPMC Benchmark Analysis - Statistical results with error bars
+"""
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 from pathlib import Path
-import os
-import sys
-import csv
+import warnings
+warnings.filterwarnings('ignore')
 
-def ensure_dir(path):
-    """Create directory with proper permissions"""
-    path = Path(path)
-    if not path.exists():
-        path.mkdir(parents=True, exist_ok=True)
-    return path
+sns.set_style("darkgrid")
 
-def debug_print_csv_content(filepath):
-    """Print first few lines of CSV for debugging"""
-    print(f"\nDebug: Reading {filepath}")
-    with open(filepath, 'r') as f:
-        lines = f.readlines()
-        print(f"  Total lines: {len(lines)}")
-        print(f"  Header: {lines[0].strip()}")
-        if len(lines) > 1:
-            print(f"  First data row: {lines[1].strip()}")
-        if len(lines) > 2:
-            print(f"  Second data row: {lines[2].strip()}")
-
-def load_data():
-    """Load results from CSV with proper type handling and debugging"""
-    results_file = Path('results/data/results.csv')
-    
-    if not results_file.exists():
-        print(f"Error: Results file not found: {results_file}")
-        print("Run sudo ./run.sh first")
-        return pd.DataFrame()
-    
-    # Debug: Show file content
-    debug_print_csv_content(results_file)
-    
-    # Try reading with standard pandas
-    try:
-        df = pd.read_csv(results_file)
-        print(f"\n  Initial read: {len(df)} rows, columns: {list(df.columns)}")
-    except Exception as e:
-        print(f"  Error reading with pandas: {e}")
-        return pd.DataFrame()
-    
-    # Check if DataFrame is empty
-    if df.empty:
-        print("  DataFrame is empty")
-        return pd.DataFrame()
-    
-    # Print column dtypes before conversion
-    print(f"  Column types before conversion:")
-    for col in df.columns:
-        print(f"    {col}: {df[col].dtype}")
-    
-    # Convert columns to numeric where appropriate
-    numeric_cols = ['throughput_mops', 'enqueue_p99_ns', 'dequeue_p99_ns', 'retries', 'cores']
+# ============================================================================
+# Data loading
+# ============================================================================
+def load_summary():
+    df = pd.read_csv('results/data/summary_results.csv')
+    # Convert to numeric
+    numeric_cols = ['cores', 'producers', 'consumers', 'items', 'capacity',
+                    'throughput_mean', 'throughput_std',
+                    'enqueue_p99_mean', 'enqueue_p99_std',
+                    'dequeue_p99_mean', 'dequeue_p99_std']
     for col in numeric_cols:
         if col in df.columns:
-            original = df[col].copy()
             df[col] = pd.to_numeric(df[col], errors='coerce')
-            na_count = df[col].isna().sum()
-            if na_count > 0:
-                print(f"  Converted {col}: {na_count} NA values (from {len(original)} total)")
-    
-    # Filter out invalid rows
-    original_len = len(df)
-    df = df[df['throughput_mops'] > 0]
-    df = df[df['cores'].notna()]
-    print(f"  Filtered: {original_len} -> {len(df)} rows")
-    
-    if df.empty:
-        print("  No valid rows after filtering")
-        return pd.DataFrame()
-    
-    # Print sample of valid data
-    print(f"\n  Sample of valid data:")
-    print(df[['queue', 'cores', 'throughput_mops']].head())
-    
+    df = df.dropna(subset=['throughput_mean'])
     return df
 
-def plot_throughput(df, output_dir):
-    """Create throughput comparison chart"""
+def load_details():
+    return pd.read_csv('results/data/detail_results.csv')
+
+# ============================================================================
+# 1. Throughput vs Cores with error bars
+# ============================================================================
+def plot_throughput_with_errorbars(df, output_dir):
+    """Line plots with error bars (std deviation) for each configuration"""
+    config_cols = ['queue', 'producers', 'consumers', 'items', 'capacity']
+    grouped = df.groupby(config_cols)
+    
+    for (queue, prod, cons, items, cap), group in grouped:
+        if len(group) < 2:
+            continue
+        group = group.sort_values('cores')
+        plt.figure()
+        plt.errorbar(group['cores'], group['throughput_mean'],
+                     yerr=group['throughput_std'], capsize=5, marker='o', linewidth=2, markersize=8)
+        plt.xlabel('CPU Cores (cgroup limit)')
+        plt.ylabel('Throughput (M ops/sec)')
+        plt.title(f'{queue.upper()} | P={prod} C={cons} | items={items} | cap={cap}\n(mean ± std, {group["runs"].iloc[0]} runs)')
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        fname = f"throughput_stats_{queue}_p{prod}c{cons}_i{items}_s{cap}.png"
+        plt.savefig(output_dir / fname, dpi=150)
+        plt.close()
+    print(f"  Generated {len(grouped)} throughput plots with error bars")
+
+# ============================================================================
+# 2. Heatmaps (using means)
+# ============================================================================
+def plot_heatmaps(df, output_dir):
+    """Heatmaps of mean throughput for fixed cores"""
+    # Create a column for log throughput (better color scaling)
+    df['log_throughput'] = np.log1p(df['throughput_mean'])
+    
+    config_cols = ['queue', 'cores', 'items', 'capacity']
+    for (queue, cores, items, cap), group in df.groupby(config_cols):
+        if len(group) < 2:
+            continue
+        pivot = group.pivot_table(index='producers', columns='consumers',
+                                  values='throughput_mean', aggfunc='first')
+        if pivot.empty or pivot.shape[0] < 2 or pivot.shape[1] < 2:
+            continue
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(pivot, annot=True, fmt='.2f', cmap='viridis',
+                    linewidths=0.5, cbar_kws={'label': 'Throughput (M ops/sec)'})
+        plt.title(f'{queue.upper()} | cores={cores} | items={items} | cap={cap}')
+        plt.xlabel('Consumers')
+        plt.ylabel('Producers')
+        plt.tight_layout()
+        fname = f"heatmap_stats_{queue}_c{cores}_i{items}_s{cap}.png"
+        plt.savefig(output_dir / fname, dpi=150)
+        plt.close()
+    print(f"  Generated heatmaps")
+
+# ============================================================================
+# 3. Latency comparison with error bars
+# ============================================================================
+def plot_latency_with_errorbars(df, output_dir):
+    """Grouped bar chart with error bars for enqueue/dequeue P99 latency"""
+    high_core = df[df['cores'] == df['cores'].max()]
+    sample_configs = [
+        (4, 4, 500000, 100000),
+        (10, 1, 500000, 100000),
+        (1, 10, 500000, 100000),
+        (16, 16, 50000, 1000),
+    ]
+    for prod, cons, items, cap in sample_configs:
+        sub = high_core[(high_core['producers'] == prod) &
+                        (high_core['consumers'] == cons) &
+                        (high_core['items'] == items) &
+                        (high_core['capacity'] == cap)]
+        if sub.empty:
+            continue
+        queues = sub['queue'].values
+        enq_mean = sub['enqueue_p99_mean'].values / 1000  # to μs
+        enq_std = sub['enqueue_p99_std'].values / 1000
+        deq_mean = sub['dequeue_p99_mean'].values / 1000
+        deq_std = sub['dequeue_p99_std'].values / 1000
+        
+        x = np.arange(len(queues))
+        width = 0.35
+        fig, ax = plt.subplots()
+        ax.bar(x - width/2, enq_mean, width, yerr=enq_std, capsize=5,
+               label='Enqueue P99', color='steelblue', error_kw={'ecolor': 'black'})
+        ax.bar(x + width/2, deq_mean, width, yerr=deq_std, capsize=5,
+               label='Dequeue P99', color='coral', error_kw={'ecolor': 'black'})
+        ax.set_xlabel('Queue')
+        ax.set_ylabel('Latency (μs)')
+        ax.set_title(f'P99 Latency | P={prod} C={cons} | items={items} | cap={cap} | cores={high_core["cores"].iloc[0]}')
+        ax.set_xticks(x)
+        ax.set_xticklabels(queues)
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+        plt.tight_layout()
+        fname = f"latency_stats_p{prod}c{cons}_i{items}_s{cap}.png"
+        plt.savefig(output_dir / fname, dpi=150)
+        plt.close()
+    print(f"  Generated latency plots with error bars")
+
+# ============================================================================
+# 4. Boxplot of throughput by queue (using all individual runs for better distribution)
+# ============================================================================
+def plot_boxplot_individual_runs(detail_df, output_dir):
+    """Boxplot using all individual run data (not just means)"""
     plt.figure(figsize=(10, 6))
-    
-    for queue in df['queue'].unique():
-        qdf = df[df['queue'] == queue].copy()
-        qdf = qdf.sort_values('cores')
-        
-        cores = qdf['cores'].values
-        throughput = qdf['throughput_mops'].values
-        
-        if len(cores) > 0:
-            plt.plot(cores, throughput, 
-                    marker='o', linewidth=2, markersize=8, label=queue.upper())
-            print(f"  Plotted {queue}: cores={cores}, throughput={throughput}")
-    
-    plt.xlabel('CPU Cores (cgroup limit)')
+    sns.boxplot(data=detail_df, x='queue', y='throughput_mops', palette='Set2')
+    plt.xlabel('Queue Type')
     plt.ylabel('Throughput (M ops/sec)')
-    plt.title('MPMC Queue Throughput vs CPU Cores (P=16, C=16)')
-    plt.legend()
+    plt.title('Throughput Distribution by Queue (all individual runs)')
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(output_dir / 'throughput.png', dpi=150)
+    plt.savefig(output_dir / 'boxplot_individual_runs.png', dpi=150)
     plt.close()
-    print(f"  Saved: throughput.png")
+    print(f"  Saved boxplot of individual runs")
 
-def plot_latency(df, output_dir):
-    """Create latency comparison chart"""
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-    
-    has_data = False
-    
-    for queue in df['queue'].unique():
-        qdf = df[df['queue'] == queue].copy()
-        qdf = qdf.sort_values('cores')
-        
-        cores = qdf['cores'].values
-        enq_lat = qdf['enqueue_p99_ns'].values
-        deq_lat = qdf['dequeue_p99_ns'].values
-        
-        # Filter out NaN values
-        valid_mask = ~np.isnan(enq_lat) & ~np.isnan(deq_lat)
-        
-        if len(cores) > 0 and valid_mask.any():
-            has_data = True
-            ax1.plot(cores[valid_mask], enq_lat[valid_mask] / 1000, 
-                    marker='s', linewidth=2, label=queue.upper())
-            ax2.plot(cores[valid_mask], deq_lat[valid_mask] / 1000, 
-                    marker='^', linewidth=2, label=queue.upper())
-    
-    if not has_data:
-        print("  Warning: No latency data available")
-        plt.close()
-        return
-    
-    ax1.set_xlabel('CPU Cores')
-    ax1.set_ylabel('P99 Enqueue Latency (μs)')
-    ax1.set_title('Enqueue P99 Latency')
-    ax1.legend()
-    ax1.grid(True, alpha=0.3)
-    
-    ax2.set_xlabel('CPU Cores')
-    ax2.set_ylabel('P99 Dequeue Latency (μs)')
-    ax2.set_title('Dequeue P99 Latency')
-    ax2.legend()
-    ax2.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    plt.savefig(output_dir / 'latency.png', dpi=150)
-    plt.close()
-    print(f"  Saved: latency.png")
-
-def plot_scaling(df, output_dir):
-    """Create scalability analysis chart"""
+# ============================================================================
+# 5. Coefficient of variation analysis
+# ============================================================================
+def plot_cv_analysis(df, output_dir):
+    """Plot coefficient of variation (std/mean) to show stability"""
+    df['cv_throughput'] = df['throughput_std'] / df['throughput_mean']
+    # For each queue, plot CV vs cores
     plt.figure(figsize=(10, 6))
-    
-    has_data = False
-    
     for queue in df['queue'].unique():
-        qdf = df[df['queue'] == queue].copy()
-        qdf = qdf.sort_values('cores')
-        
-        cores = qdf['cores'].values
-        throughput = qdf['throughput_mops'].values
-        
-        # Find baseline at 1 core
-        baseline_mask = cores == 1
-        if baseline_mask.any() and len(throughput) > 0:
-            baseline = throughput[baseline_mask][0]
-            if baseline > 0:
-                scaling = throughput / baseline
-                plt.plot(cores, scaling, marker='o', linewidth=2, label=queue.upper())
-                has_data = True
-    
-    if not has_data:
-        print("  Warning: No scaling data available")
-        plt.close()
-        return
-    
-    max_core = df['cores'].max()
-    plt.plot([1, max_core], [1, max_core], 'k--', alpha=0.5, label='Ideal')
+        qdf = df[df['queue'] == queue].groupby('cores')['cv_throughput'].mean().reset_index()
+        plt.plot(qdf['cores'], qdf['cv_throughput'], marker='o', label=queue.upper())
     plt.xlabel('CPU Cores')
-    plt.ylabel('Speedup (relative to 1 core)')
-    plt.title('Scalability Analysis')
+    plt.ylabel('Coefficient of Variation (σ/μ)')
+    plt.title('Measurement Stability (lower is better)')
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(output_dir / 'scaling.png', dpi=150)
+    plt.savefig(output_dir / 'coefficient_of_variation.png', dpi=150)
     plt.close()
-    print(f"  Saved: scaling.png")
+    print(f"  Saved CV analysis")
 
-def generate_report(df, output_dir):
-    """Generate text report"""
-    report_path = output_dir / 'report.txt'
-    
-    with open(report_path, 'w') as f:
-        f.write("=" * 60 + "\n")
-        f.write("MPMC QUEUE BENCHMARK REPORT\n")
-        f.write("=" * 60 + "\n\n")
-        
-        max_cores = df['cores'].max()
-        
-        f.write(f"Best throughput at {int(max_cores)} cores:\n")
-        best = df[df['cores'] == max_cores].sort_values('throughput_mops', ascending=False)
-        for _, row in best.iterrows():
-            f.write(f"  {row['queue'].upper()}: {row['throughput_mops']:.2f} M ops/sec\n")
-        
-        f.write(f"\nBest latency at {int(max_cores)} cores:\n")
-        best_lat = df[df['cores'] == max_cores].sort_values('enqueue_p99_ns')
-        for _, row in best_lat.iterrows():
-            if pd.notna(row['enqueue_p99_ns']):
-                f.write(f"  {row['queue'].upper()}: {row['enqueue_p99_ns']:.0f} ns\n")
-        
-        f.write("\nScalability (max-core / 1-core):\n")
-        for queue in df['queue'].unique():
-            qdf = df[df['queue'] == queue]
-            if len(qdf) >= 2:
-                c1 = qdf[qdf['cores'] == 1]['throughput_mops'].values
-                cmax = qdf[qdf['cores'] == max_cores]['throughput_mops'].values
-                if len(c1) > 0 and len(cmax) > 0 and c1[0] > 0:
-                    speedup = cmax[0] / c1[0]
-                    f.write(f"  {queue.upper()}: {speedup:.2f}x\n")
-    
-    print(f"  Saved: report.txt")
-
-def print_summary(df):
-    """Print summary to console"""
-    print("\n" + "=" * 60)
-    print("QUICK SUMMARY")
-    print("=" * 60)
-    
-    max_cores = int(df['cores'].max())
-    
-    print(f"\nAt {max_cores} cores:")
-    for queue in df['queue'].unique():
-        qdf = df[(df['queue'] == queue) & (df['cores'] == max_cores)]
-        if not qdf.empty:
-            throughput = qdf['throughput_mops'].values[0]
-            enq_lat = qdf['enqueue_p99_ns'].values[0] if not pd.isna(qdf['enqueue_p99_ns'].values[0]) else 0
-            print(f"  {queue.upper()}: {throughput:.2f} M ops/sec, {enq_lat:.0f} ns P99")
-    
-    # Find best overall
-    best = df[df['cores'] == max_cores].sort_values('throughput_mops', ascending=False).iloc[0]
-    print(f"\nBest overall: {best['queue'].upper()} with {best['throughput_mops']:.2f} M ops/sec")
-
+# ============================================================================
+# Main
+# ============================================================================
 def main():
-    print("=" * 60)
-    print("MPMC Queue Benchmark Analysis")
-    print("=" * 60)
+    output_dir = Path('results/analysis')
+    output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Create output directory
-    output_dir = ensure_dir('results/analysis')
+    print("Loading data...")
+    df_summary = load_summary()
+    if df_summary.empty:
+        print("No summary results found. Run ./run.sh first.")
+        return
+    print(f"Loaded {len(df_summary)} summary configurations.")
     
-    # Load data
-    df = load_data()
-    if df.empty:
-        print("\nNo valid results found.")
-        print("\nPossible issues:")
-        print("  1. Benchmark didn't complete successfully")
-        print("  2. CSV format is incorrect")
-        print("  3. No successful test runs")
-        print("\nCheck results/data/results.csv manually:")
-        print("  cat results/data/results.csv")
-        sys.exit(1)
+    try:
+        df_detail = load_details()
+        print(f"Loaded {len(df_detail)} individual run records.")
+    except:
+        df_detail = pd.DataFrame()
     
-    print(f"\nProcessing {len(df)} successful results")
-    print(f"Queues: {', '.join(df['queue'].unique())}")
-    print(f"Cores tested: {sorted(df['cores'].unique())}")
+    print("Generating plots...")
+    plot_throughput_with_errorbars(df_summary, output_dir)
+    plot_heatmaps(df_summary, output_dir)
+    plot_latency_with_errorbars(df_summary, output_dir)
+    if not df_detail.empty:
+        plot_boxplot_individual_runs(df_detail, output_dir)
+    plot_cv_analysis(df_summary, output_dir)
     
-    print("\nGenerating plots...")
-    plot_throughput(df, output_dir)
-    plot_latency(df, output_dir)
-    plot_scaling(df, output_dir)
-    generate_report(df, output_dir)
-    print_summary(df)
-    
-    print(f"\nAnalysis complete! Results saved in {output_dir}/")
-    print("\nTo view results:")
-    print("  cat results/analysis/report.txt")
-    print("  firefox results/analysis/throughput.png")
+    # Generate statistical summary report
+    report = output_dir / 'statistical_report.txt'
+    with open(report, 'w') as f:
+        f.write("MPMC BENCHMARK STATISTICAL REPORT\n")
+        f.write("=================================\n\n")
+        f.write(f"Based on {df_summary['runs'].iloc[0] if not df_summary.empty else '?'} runs per configuration.\n\n")
+        f.write("Best throughput (mean) per queue:\n")
+        best = df_summary.loc[df_summary.groupby('queue')['throughput_mean'].idxmax()]
+        for _, row in best.iterrows():
+            f.write(f"  {row['queue'].upper()}: {row['throughput_mean']:.2f} ± {row['throughput_std']:.2f} M ops/sec "
+                    f"(P={int(row['producers'])}, C={int(row['consumers'])}, cores={int(row['cores'])})\n")
+        f.write("\nLowest latency (enqueue P99) per queue:\n")
+        best_lat = df_summary.loc[df_summary.groupby('queue')['enqueue_p99_mean'].idxmin()]
+        for _, row in best_lat.iterrows():
+            f.write(f"  {row['queue'].upper()}: {row['enqueue_p99_mean']:.0f} ± {row['enqueue_p99_std']:.0f} ns\n")
+    print(f"Saved report: {report}")
+    print("Analysis complete.")
 
 if __name__ == '__main__':
     main()
