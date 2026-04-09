@@ -1,3 +1,0 @@
-/home/marton/workspace/lock-free_queue/build/CMakeFiles/benchmark.dir
-/home/marton/workspace/lock-free_queue/build/CMakeFiles/edit_cache.dir
-/home/marton/workspace/lock-free_queue/build/CMakeFiles/rebuild_cache.dir

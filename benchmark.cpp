@@ -1,6 +1,5 @@
 #include "queues.h"
-#include "benchmark_tp.h"   // LTTng tracepoints
-
+#include "benchmark_tp.h"
 #include <iostream>
 #include <iomanip>
 #include <thread>
@@ -10,11 +9,14 @@
 #include <string>
 #include <getopt.h>
 #include <algorithm>
+#include <unistd.h>
+#include <fstream>
+#include <sys/stat.h>
 
 using namespace std::chrono;
 
 // ============================================================================
-// Statistics (simple per‑thread, used only for sanity, not for final results)
+// Stats class
 // ============================================================================
 class Stats {
 private:
@@ -65,14 +67,12 @@ public:
     uint64_t min() const { return global_min.load(); }
     uint64_t max() const { return global_max.load(); }
     double avg() const { return count() ? (double)sum() / count() : 0; }
-
     uint64_t p99() {
         std::lock_guard<std::mutex> lock(sample_mtx);
         if (samples.empty()) return 0;
         std::sort(samples.begin(), samples.end());
         return samples[samples.size() * 99 / 100];
     }
-
     void reset() {
         total_cnt = 0; total_sum = 0; global_min = UINT64_MAX; global_max = 0;
         for (auto& d : data) d.reset();
@@ -82,7 +82,7 @@ public:
 };
 
 // ============================================================================
-// Benchmark Harness with LTTng tracepoints
+// Benchmark harness
 // ============================================================================
 template<typename Q>
 class Benchmark {
@@ -94,7 +94,7 @@ private:
     std::atomic<size_t> done_enq{0};
     std::atomic<size_t> done_deq{0};
     std::atomic<size_t> next_id{0};
-    Stats enq_stats, deq_stats;   // only for sanity, not used in final report
+    Stats enq_stats, deq_stats;
 
 public:
     Benchmark(Q& q, size_t p, size_t c, size_t i, const std::string& name)
@@ -109,11 +109,9 @@ public:
         stop = false;
 
         std::vector<std::thread> producers_th, consumers_th;
-
         auto start = high_resolution_clock::now();
 
-        // Consumers first
-        for (size_t i = 0; i < consumers; i++) {
+        for (size_t i = 0; i < consumers; ++i) {
             consumers_th.emplace_back([this]() {
                 size_t tid = next_id.fetch_add(1);
                 uint64_t dummy;
@@ -122,7 +120,6 @@ public:
                     auto before = high_resolution_clock::now();
                     if (queue.dequeue(dummy)) {
                         auto ns = duration_cast<nanoseconds>(high_resolution_clock::now() - before).count();
-                        // LTTng tracepoint
                         tracepoint(mpmc_benchmark, queue_op, queue_name.c_str(), "dequeue", tid, ns);
                         deq_stats.add(tid, ns);
                         done_deq.fetch_add(1);
@@ -133,17 +130,15 @@ public:
             });
         }
 
-        // Producers
-        for (size_t i = 0; i < producers; i++) {
+        for (size_t i = 0; i < producers; ++i) {
             producers_th.emplace_back([this]() {
                 size_t tid = next_id.fetch_add(1);
-                for (size_t i = 0; i < items; i++) {
+                for (size_t i = 0; i < items; ++i) {
                     auto before = high_resolution_clock::now();
                     while (!queue.enqueue(i)) {
                         __builtin_ia32_pause();
                     }
                     auto ns = duration_cast<nanoseconds>(high_resolution_clock::now() - before).count();
-                    // LTTng tracepoint
                     tracepoint(mpmc_benchmark, queue_op, queue_name.c_str(), "enqueue", tid, ns);
                     enq_stats.add(tid, ns);
                     done_enq.fetch_add(1);
@@ -156,13 +151,12 @@ public:
         for (auto& t : consumers_th) t.join();
 
         auto ns = duration_cast<nanoseconds>(high_resolution_clock::now() - start).count();
-
         uint64_t total = enq_stats.count();
         double throughput = total * 1e9 / ns;
 
         std::cout << std::fixed << std::setprecision(2);
         std::cout << "\n========================================\n";
-        std::cout << "RESULTS (sanity – final results from LTTng)\n";
+        std::cout << "RESULTS\n";
         std::cout << "========================================\n";
         std::cout << "Throughput: " << throughput / 1e6 << "\n";
         std::cout << "Total ops: " << total << "\n";
@@ -188,6 +182,7 @@ struct Config {
     size_t consumers = 4;
     size_t items = 1000000;
     size_t capacity = 100000;
+    std::string pidfile = "";
     bool help = false;
 };
 
@@ -198,19 +193,21 @@ void usage(const char* prog) {
               << "  -c NUM      Consumers (default: 4)\n"
               << "  -i NUM      Items per producer (default: 1000000)\n"
               << "  -s NUM      Queue capacity (default: 100000, ignored for hazard)\n"
+              << "  -f FILE     Write PID to FILE (optional)\n"
               << "  -h          Help\n";
 }
 
 Config parse_args(int argc, char** argv) {
     Config cfg;
     int opt;
-    while ((opt = getopt(argc, argv, "t:p:c:i:s:h")) != -1) {
+    while ((opt = getopt(argc, argv, "t:p:c:i:s:f:h")) != -1) {
         switch (opt) {
             case 't': cfg.type = optarg; break;
             case 'p': cfg.producers = std::stoul(optarg); break;
             case 'c': cfg.consumers = std::stoul(optarg); break;
             case 'i': cfg.items = std::stoul(optarg); break;
             case 's': cfg.capacity = std::stoul(optarg); break;
+            case 'f': cfg.pidfile = optarg; break;
             case 'h': cfg.help = true; break;
         }
     }
@@ -220,6 +217,16 @@ Config parse_args(int argc, char** argv) {
 int main(int argc, char** argv) {
     Config cfg = parse_args(argc, argv);
     if (cfg.help) { usage(argv[0]); return 0; }
+
+    // Write PID to file if requested
+    if (!cfg.pidfile.empty()) {
+        std::ofstream pf(cfg.pidfile);
+        if (pf.is_open()) {
+            pf << getpid();
+            pf.close();
+            chmod(cfg.pidfile.c_str(), 0644);
+        }
+    }
 
     std::cout << "\nBenchmark: " << cfg.type
               << " | P=" << cfg.producers << " C=" << cfg.consumers
@@ -242,7 +249,7 @@ int main(int argc, char** argv) {
             bench.run();
         }
         else if (cfg.type == "hazard") {
-            TwoLockHazardQueue<uint64_t> q;  // capacity ignored
+            TwoLockHazardQueue<uint64_t> q;
             Benchmark<TwoLockHazardQueue<uint64_t>> bench(q, cfg.producers, cfg.consumers, cfg.items, "hazard");
             bench.run();
         }
@@ -253,6 +260,11 @@ int main(int argc, char** argv) {
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
         return 1;
+    }
+
+    // Remove PID file
+    if (!cfg.pidfile.empty()) {
+        unlink(cfg.pidfile.c_str());
     }
     return 0;
 }

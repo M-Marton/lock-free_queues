@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/benchmark.dir/link.d CMakeFiles/benchmark.dir/benchmark.cpp.o CMakeFiles/benchmark.dir/benchmark_tp.c.o -o benchmark  -lpthread -ldl -llttng-ust -llttng-ust-common -ldl -llttng-ust -llttng-ust-common

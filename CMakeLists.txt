@@ -23,12 +23,6 @@ add_executable(benchmark
     benchmark_tp.c
 )
 
-# Add the current source directory to the include path
-target_include_directories(benchmark PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${EXTRA_INC}
-)
-
+target_include_directories(benchmark PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${EXTRA_INC})
 target_link_libraries(benchmark pthread dl ${EXTRA_LIBS})
-
 target_compile_options(benchmark PRIVATE -O3 -march=native)

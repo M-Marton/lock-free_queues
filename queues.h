@@ -12,6 +12,7 @@
 #include <memory>
 #include <stdexcept>
 
+
 // ============================================================================
 // 1. MUTEX QUEUE (Baseline, blocking, bounded)
 // ============================================================================
@@ -187,7 +188,6 @@ public:
 
 // ============================================================================
 // 4. MICHAEL-SCOTT QUEUE WITH HAZARD POINTERS (Unbounded, lock‑free)
-//    Constructor takes a capacity parameter for API consistency (ignored)
 // ============================================================================
 
 class HazardManager {
@@ -262,7 +262,6 @@ class TwoLockHazardQueue {
     }
 
 public:
-    // Capacity parameter is ignored (unbounded queue) – kept for API consistency
     explicit TwoLockHazardQueue(size_t /*capacity*/ = 0) {
         Node* dummy = new Node();
         head.store(dummy, std::memory_order_relaxed);

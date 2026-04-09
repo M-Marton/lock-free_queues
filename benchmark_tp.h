@@ -1,9 +1,8 @@
-/* LTTng-UST tracepoint provider header */
 #undef TRACEPOINT_PROVIDER
 #define TRACEPOINT_PROVIDER mpmc_benchmark
 
 #undef TRACEPOINT_INCLUDE
-#define TRACEPOINT_INCLUDE "benchmark_tp.h"
+#define TRACEPOINT_INCLUDE "./benchmark_tp.h"
 
 #if !defined(_BENCHMARK_TP_H) || defined(TRACEPOINT_HEADER_MULTI_READ)
 #define _BENCHMARK_TP_H
@@ -28,6 +27,6 @@ TRACEPOINT_EVENT(
     )
 )
 
-#endif /* _BENCHMARK_TP_H */
+#endif
 
 #include <lttng/tracepoint-event.h>
