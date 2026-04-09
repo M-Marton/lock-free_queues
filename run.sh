@@ -28,7 +28,7 @@ CORES=(1 2 4 8 12 15)
 RATIOS=(
     "1 1" "1 4" "1 10"
     "4 1" "4 4" "4 10"
-    "10 1" "10 4" "10 10"
+    "10 1" "10 4" "8 8"
     "16 16"
 )
 ITEMS_LIST=(50000 500000)
@@ -36,7 +36,7 @@ CAPACITY_LIST=(1000 100000)
 
 TIMEOUT=180
 RUNS_PER_CONFIG=5
-CPU_BUDGET=15          # Maximum total cores used concurrently
+CPU_BUDGET=13          # Maximum total cores used concurrently
 
 # Summary CSV
 SUMMARY_CSV="$DATA_DIR/summary_lttng.csv"
