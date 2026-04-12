@@ -1,11 +1,45 @@
 #!/bin/bash
-# MPMC Benchmark - Full matrix, PID file via -f argument
+# run.sh v2.0 - MPMC Benchmark Runner with LTTng cleanup and prevention
+# Changes: Added trap for cleanup, LTTng session protection, timeout handling
 
 set -u
 
+# ============================================================================
+# Cleanup function - ensures LTTng sessions are always destroyed
+# ============================================================================
+cleanup() {
+    echo ""
+    echo "Cleaning up LTTng sessions and processes..."
+    sudo lttng destroy --all 2>/dev/null
+    sudo pkill -9 lttng-consumerd 2>/dev/null
+    sudo pkill -9 lttng-sessiond 2>/dev/null
+    echo "Cleanup complete."
+    exit
+}
+
+# Set trap for various exit signals
+trap cleanup EXIT INT TERM HUP
+
+# ============================================================================
+# Start fresh LTTng daemon
+# ============================================================================
+echo "Starting fresh LTTng daemon..."
+sudo lttng destroy --all 2>/dev/null
+sudo pkill -9 lttng-consumerd 2>/dev/null
+sudo pkill -9 lttng-sessiond 2>/dev/null
+sleep 1
+sudo lttng-sessiond --daemonize
+sleep 1
+echo "LTTng daemon ready."
+
+# ============================================================================
+# Configuration
+# ============================================================================
+
 RESULTS_DIR="./results"
 TRACES_DIR="$RESULTS_DIR/traces"
-mkdir -p "$TRACES_DIR"
+DATA_DIR="$RESULTS_DIR/data"
+mkdir -p "$TRACES_DIR" "$DATA_DIR"
 
 # Build
 echo "Building benchmark with LTTng..."
@@ -14,124 +48,171 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
 cd ..
 
-# Configuration matrix
-QUEUES=("mutex" "ringbuffer" "bounded" "hazard")
-CORES=(1 2 4 8 15)
-RATIOS=(
-    "1 1" "1 4" "1 10"
-    "4 1" "10 1"
-    "4 4" "8 8"
-    "16 16"
+# Test configurations: producers, consumers, items, capacity
+# Simplified matrix for meaningful results
+CONFIGS=(
+    # Balanced tests with tight capacity
+    "8 8 1000000 10"
+    "8 8 1000000 50"
+    "8 8 1000000 100"
+    "8 8 1000000 500"
+    "8 8 1000000 1000"
+    
+    # Unbalanced tests (tight capacity)
+#    "14 2 1000000 50"
+#    "2 14 1000000 50"
+#    "15 1 1000000 50"
+#    "1 15 1000000 50"
 )
-ITEMS_LIST=(100000)
-CAPACITY_LIST=(1000 100000)
 
-TIMEOUT=180
+# Queue types
+QUEUES=("mutex" "ringbuffer" "bounded" "hazard")
+
+TIMEOUT=600  # 10 minutes timeout per test (for 10M items)
 RUNS_PER_CONFIG=3
 
-# Create unique session
-SESSION_NAME="mpmc_sequential_$$"
-TRACE_PATH="$TRACES_DIR/$SESSION_NAME"
-mkdir -p "$TRACE_PATH"
-
-# CSV inside trace directory
-SUMMARY_CSV="$TRACE_PATH/summary.csv"
+SUMMARY_CSV="$DATA_DIR/summary_lttng.csv"
 echo "queue,cores,producers,consumers,items,capacity,run,pid,throughput_mops" > "$SUMMARY_CSV"
+
+# Use all available cores (no cgroup limiting)
+# Just run on the system with full hardware capability
+CORES_SETTING="full"
 
 # Pre‑compute total test cases
 total_configs=0
 for queue in "${QUEUES[@]}"; do
-    for cores in "${CORES[@]}"; do
-        for ratio in "${RATIOS[@]}"; do
-            for items in "${ITEMS_LIST[@]}"; do
-                for cap in "${CAPACITY_LIST[@]}"; do
-                    for run in $(seq 1 $RUNS_PER_CONFIG); do
-                        total_configs=$((total_configs + 1))
-                    done
-                done
-            done
+    for config in "${CONFIGS[@]}"; do
+        for run in $(seq 1 $RUNS_PER_CONFIG); do
+            total_configs=$((total_configs + 1))
         done
     done
 done
 
 echo "Total test cases: $total_configs"
+echo "CPU cores: all available (no cgroup limiting)"
+echo "Timeout per test: ${TIMEOUT}s"
 echo ""
 
-# Setup LTTng session
+# ============================================================================
+# Setup LTTng session (single session for all runs)
+# ============================================================================
+SESSION_NAME="mpmc_sequential_$$"
+TRACE_PATH="$TRACES_DIR/$SESSION_NAME"
+mkdir -p "$TRACE_PATH"
+
+echo "Creating LTTng session: $SESSION_NAME (output: $TRACE_PATH)"
 lttng create "$SESSION_NAME" --output="$TRACE_PATH" > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to create LTTng session"
+    exit 1
+fi
+
 lttng enable-event --userspace mpmc_benchmark:queue_op > /dev/null 2>&1
 lttng add-context --userspace -t vtid -t vpid -t procname > /dev/null 2>&1
 lttng start > /dev/null 2>&1
+echo "LTTng tracing started."
 
-# Run sequentially
+# ============================================================================
+# Run benchmarks sequentially
+# ============================================================================
 current=0
 start_global=$(date +%s)
 
 for queue in "${QUEUES[@]}"; do
-    for cores in "${CORES[@]}"; do
-        for ratio in "${RATIOS[@]}"; do
-            prod=$(echo $ratio | cut -d' ' -f1)
-            cons=$(echo $ratio | cut -d' ' -f2)
-            for items in "${ITEMS_LIST[@]}"; do
-                for cap in "${CAPACITY_LIST[@]}"; do
-                    for run in $(seq 1 $RUNS_PER_CONFIG); do
-                        current=$((current + 1))
-                        echo "[$current/$total_configs] $queue cores=$cores P=$prod C=$cons items=$items cap=$cap run=$run"
+    for config in "${CONFIGS[@]}"; do
+        read -r prod cons items cap <<< "$config"
+        for run in $(seq 1 $RUNS_PER_CONFIG); do
+            current=$((current + 1))
+            
+            echo "[$current/$total_configs] $queue P=$prod C=$cons items=$items cap=$cap run=$run"
 
-                        # Create cgroup
-                        cgroup_name="mpmc_$$_${queue}_c${cores}_r${run}"
-                        sudo mkdir -p "/sys/fs/cgroup/$cgroup_name" 2>/dev/null
-                        echo "$((cores * 100000)) 100000" | sudo tee "/sys/fs/cgroup/$cgroup_name/cpu.max" > /dev/null
+            output="$DATA_DIR/${queue}_p${prod}c${cons}_i${items}_s${cap}_run${run}.log"
+            pidfile="$DATA_DIR/${queue}_p${prod}c${cons}_i${items}_s${cap}_run${run}.pid"
 
-                        output="$TRACE_PATH/${queue}_p${prod}c${cons}_i${items}_s${cap}_c${cores}_run${run}.log"
-                        pidfile="$TRACE_PATH/${queue}_p${prod}c${cons}_i${items}_s${cap}_c${cores}_run${run}.pid"
+            # Remove old PID file
+            rm -f "$pidfile"
 
-                        # Run benchmark with PID file argument
-                        sudo cgexec -g cpu:"$cgroup_name" timeout $TIMEOUT ./build/benchmark \
-                            -t "$queue" -p "$prod" -c "$cons" -i "$items" -s "$cap" -f "$pidfile" \
-                            > "$output" 2>&1 &
-                        bench_pid=$!
+            # Run benchmark with timeout (no cgroups, uses all cores)
+            timeout $TIMEOUT ./build/benchmark \
+                -t "$queue" -p "$prod" -c "$cons" -i "$items" -s "$cap" -f "$pidfile" \
+                > "$output" 2>&1 &
+            bench_pid=$!
 
-                        # Wait for PID file (max 5 seconds)
-                        real_pid=""
-                        for i in {1..50}; do
-                            if [ -f "$pidfile" ]; then
-                                real_pid=$(cat "$pidfile")
-                                break
-                            fi
-                            sleep 0.1
-                        done
-
-                        wait $bench_pid 2>/dev/null
-
-                        throughput=$(grep "Throughput:" "$output" | head -1 | awk '{print $2}')
-                        if [[ "$throughput" =~ ^[0-9]+\.?[0-9]*$ ]]; then
-                            if [ -n "$real_pid" ]; then
-                                echo "$queue,$cores,$prod,$cons,$items,$cap,$run,$real_pid,$throughput" >> "$SUMMARY_CSV"
-                                echo "  ✓ PID: $real_pid, throughput: $throughput M ops/sec"
-                            else
-                                echo "  ⚠ WARNING: No PID, throughput: $throughput"
-                                echo "$queue,$cores,$prod,$cons,$items,$cap,$run,0,$throughput" >> "$SUMMARY_CSV"
-                            fi
-                        else
-                            echo "  ✗ FAILED"
-                        fi
-
-                        # Cleanup
-                        rm -f "$pidfile"
-                        sudo rmdir "/sys/fs/cgroup/$cgroup_name" 2>/dev/null
-                    done
-                done
+            # Wait for PID file (max 5 seconds)
+            real_pid=""
+            for i in {1..50}; do
+                if [ -f "$pidfile" ]; then
+                    real_pid=$(cat "$pidfile")
+                    break
+                fi
+                sleep 0.1
             done
+
+            # Wait for benchmark to finish (or timeout)
+            wait $bench_pid 2>/dev/null
+            exit_code=$?
+
+            # Extract throughput from output
+            throughput=$(grep "Throughput:" "$output" | head -1 | awk '{print $2}')
+            
+            if [[ "$throughput" =~ ^[0-9]+\.?[0-9]*$ ]]; then
+                if [ -n "$real_pid" ]; then
+                    echo "$queue,$CORES_SETTING,$prod,$cons,$items,$cap,$run,$real_pid,$throughput" >> "$SUMMARY_CSV"
+                    echo "  ✓ PID: $real_pid, throughput: $throughput M ops/sec, exit_code: $exit_code"
+                else
+                    echo "  ⚠ WARNING: No PID, throughput: $throughput"
+                    echo "$queue,$CORES_SETTING,$prod,$cons,$items,$cap,$run,0,$throughput" >> "$SUMMARY_CSV"
+                fi
+            else
+                echo "  ✗ FAILED (exit_code: $exit_code)"
+                # Check if it was a timeout
+                if [ $exit_code -eq 124 ]; then
+                    echo "    → Timeout after ${TIMEOUT}s"
+                fi
+            fi
+
+            # Cleanup PID file
+            rm -f "$pidfile"
         done
     done
 done
 
-# Stop LTTng session
+# ============================================================================
+# Stop LTTng session and cleanup
+# ============================================================================
+echo ""
+echo "Stopping LTTng session..."
 lttng stop "$SESSION_NAME" > /dev/null 2>&1
 lttng destroy "$SESSION_NAME" > /dev/null 2>&1
 
+# Summary statistics
 echo ""
-echo "Benchmark finished."
+echo "========================================="
+echo "Summary statistics (averaged over runs):"
+echo "========================================="
+
+awk -F',' '
+NR>1 {
+    key = $1","$3","$4","$5","$6
+    sum_throughput[key] += $9
+    count[key]++
+}
+END {
+    for (key in sum_throughput) {
+        avg = sum_throughput[key] / count[key]
+        printf "%-50s avg throughput = %.4f M ops/sec (based on %d runs)\n", key, avg, count[key]
+    }
+}' "$SUMMARY_CSV" | sort
+
+end_global=$(date +%s)
+total_duration=$((end_global - start_global))
+echo ""
+echo "Benchmark finished in $((total_duration/60)) minutes and $((total_duration%60)) seconds."
 echo "Trace saved in: $TRACE_PATH"
 echo "Summary CSV: $SUMMARY_CSV"
+
+# ============================================================================
+# Cleanup is automatically called by trap
+# ============================================================================
+echo ""
+echo "Run completed successfully."

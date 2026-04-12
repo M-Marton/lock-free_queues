@@ -154,7 +154,7 @@ public:
         uint64_t total = enq_stats.count();
         double throughput = total * 1e9 / ns;
 
-        std::cout << std::fixed << std::setprecision(2);
+        std::cout << std::fixed << std::setprecision(4);
         std::cout << "\n========================================\n";
         std::cout << "RESULTS\n";
         std::cout << "========================================\n";
