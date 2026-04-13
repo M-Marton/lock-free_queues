@@ -66,13 +66,10 @@ CONFIGS=(
 )
 
 # Queue types
-QUEUES=("mutex" "ringbuffer" "bounded" "hazard")
+QUEUES=("mutex" "ringbuffer" "hazard")
 
 TIMEOUT=600  # 10 minutes timeout per test (for 10M items)
-RUNS_PER_CONFIG=3
-
-SUMMARY_CSV="$DATA_DIR/summary_lttng.csv"
-echo "queue,cores,producers,consumers,items,capacity,run,pid,throughput_mops" > "$SUMMARY_CSV"
+RUNS_PER_CONFIG=10
 
 # Use all available cores (no cgroup limiting)
 # Just run on the system with full hardware capability
@@ -99,6 +96,10 @@ echo ""
 SESSION_NAME="mpmc_sequential_$$"
 TRACE_PATH="$TRACES_DIR/$SESSION_NAME"
 mkdir -p "$TRACE_PATH"
+
+SUMMARY_CSV="$TRACE_PATH/summary.csv"
+echo "queue,cores,producers,consumers,items,capacity,run,pid,throughput_mops" > "$SUMMARY_CSV"
+
 
 echo "Creating LTTng session: $SESSION_NAME (output: $TRACE_PATH)"
 lttng create "$SESSION_NAME" --output="$TRACE_PATH" > /dev/null 2>&1

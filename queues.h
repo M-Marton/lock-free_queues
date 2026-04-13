@@ -117,77 +117,7 @@ public:
 };
 
 // ============================================================================
-// 3. BOUNDED MPMC QUEUE (Simplified lock‑free, CAS‑based, bounded)
-// ============================================================================
-template<typename T>
-class BoundedMPMCQueue {
-    struct Slot {
-        alignas(64) std::atomic<bool> ready{false};
-        T data;
-        Slot() = default;
-        Slot(const Slot&) = delete;
-        Slot& operator=(const Slot&) = delete;
-    };
-    Slot* buf;
-    alignas(64) std::atomic<size_t> head{0};
-    alignas(64) std::atomic<size_t> tail{0};
-    size_t cap, mask;
-    std::atomic<size_t> sz{0};
-
-public:
-    explicit BoundedMPMCQueue(size_t capacity) : buf(nullptr), cap(1) {
-        if (!capacity) throw std::invalid_argument("capacity>0");
-        while (cap < capacity) cap <<= 1;
-        mask = cap - 1;
-        buf = static_cast<Slot*>(operator new[](sizeof(Slot) * cap));
-        for (size_t i = 0; i < cap; ++i) new (&buf[i]) Slot();
-    }
-    ~BoundedMPMCQueue() {
-        for (size_t i = 0; i < cap; ++i) buf[i].~Slot();
-        operator delete[](buf);
-    }
-    BoundedMPMCQueue(const BoundedMPMCQueue&) = delete;
-    BoundedMPMCQueue& operator=(const BoundedMPMCQueue&) = delete;
-
-    bool enqueue(T item) {
-        size_t t = tail.load(std::memory_order_acquire);
-        while (true) {
-            size_t h = head.load(std::memory_order_acquire);
-            if (t - h >= cap) return false;
-            if (tail.compare_exchange_weak(t, t+1, std::memory_order_acq_rel)) {
-                size_t idx = t & mask;
-                while (buf[idx].ready.load(std::memory_order_acquire))
-                    __builtin_ia32_pause();
-                buf[idx].data = std::move(item);
-                buf[idx].ready.store(true, std::memory_order_release);
-                sz.fetch_add(1, std::memory_order_release);
-                return true;
-            }
-        }
-    }
-    bool dequeue(T& item) {
-        size_t h = head.load(std::memory_order_acquire);
-        while (true) {
-            size_t t = tail.load(std::memory_order_acquire);
-            if (h >= t) return false;
-            if (head.compare_exchange_weak(h, h+1, std::memory_order_acq_rel)) {
-                size_t idx = h & mask;
-                while (!buf[idx].ready.load(std::memory_order_acquire))
-                    __builtin_ia32_pause();
-                item = std::move(buf[idx].data);
-                buf[idx].ready.store(false, std::memory_order_release);
-                sz.fetch_sub(1, std::memory_order_release);
-                return true;
-            }
-        }
-    }
-    size_t size() const { return sz.load(std::memory_order_acquire); }
-    bool empty() const { return size() == 0; }
-    bool full()  const { return size() >= cap; }
-};
-
-// ============================================================================
-// 4. MICHAEL-SCOTT QUEUE WITH HAZARD POINTERS (Unbounded, lock‑free)
+// 3. MICHAEL-SCOTT QUEUE WITH HAZARD POINTERS (Unbounded, lock‑free)
 // ============================================================================
 
 class HazardManager {

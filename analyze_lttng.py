@@ -298,7 +298,7 @@ def main():
         plt.figure(figsize=(12, 6))
         x = np.arange(len(unbalanced_summary))
         width = 0.6
-        colors = {'mutex': '#1f77b4', 'ringbuffer': '#2ca02c', 'bounded': '#ff7f0e', 'hazard': '#d62728'}
+        colors = {'mutex': '#1f77b4', 'ringbuffer': '#2ca02c', 'hazard': '#d62728'}
         
         plt.bar(x, unbalanced_summary['throughput_mean'], yerr=unbalanced_summary['throughput_std'], 
                 capsize=5, width=width, alpha=0.7,

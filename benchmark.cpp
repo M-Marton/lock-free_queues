@@ -188,7 +188,7 @@ struct Config {
 
 void usage(const char* prog) {
     std::cout << "Usage: " << prog << " [options]\n"
-              << "  -t TYPE     mutex | ringbuffer | bounded | hazard\n"
+              << "  -t TYPE     mutex | ringbuffer | hazard\n"
               << "  -p NUM      Producers (default: 4)\n"
               << "  -c NUM      Consumers (default: 4)\n"
               << "  -i NUM      Items per producer (default: 1000000)\n"
@@ -241,11 +241,6 @@ int main(int argc, char** argv) {
         else if (cfg.type == "ringbuffer") {
             RingBufferQueue<uint64_t> q(cfg.capacity);
             Benchmark<RingBufferQueue<uint64_t>> bench(q, cfg.producers, cfg.consumers, cfg.items, "ringbuffer");
-            bench.run();
-        }
-        else if (cfg.type == "bounded") {
-            BoundedMPMCQueue<uint64_t> q(cfg.capacity);
-            Benchmark<BoundedMPMCQueue<uint64_t>> bench(q, cfg.producers, cfg.consumers, cfg.items, "bounded");
             bench.run();
         }
         else if (cfg.type == "hazard") {
