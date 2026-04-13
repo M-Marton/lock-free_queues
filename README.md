@@ -2,9 +2,9 @@
 
 Performance measurement using LTTng-UST tracepoints.
 
--run.sh #build and run benchmark
--build/benchmark
--analyze_lttng.py #lttng ctf postprocessing and result visualization
+- **run.sh** build and run benchmark
+- build/**benchmark**
+- **analyze_lttng.py** lttng ctf postprocessing and result visualization
 
 ## Implemented Queues
 

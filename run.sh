@@ -52,10 +52,10 @@ cd ..
 # Simplified matrix for meaningful results
 CONFIGS=(
     # Balanced tests with tight capacity
-    "8 8 1000000 10"
-    "8 8 1000000 50"
-    "8 8 1000000 100"
-    "8 8 1000000 500"
+#    "8 8 1000000 10"
+#    "8 8 1000000 50"
+#    "8 8 1000000 100"
+#    "8 8 1000000 500"
     "8 8 1000000 1000"
     
     # Unbalanced tests (tight capacity)
@@ -69,7 +69,7 @@ CONFIGS=(
 QUEUES=("mutex" "ringbuffer" "hazard")
 
 TIMEOUT=600  # 10 minutes timeout per test (for 10M items)
-RUNS_PER_CONFIG=10
+RUNS_PER_CONFIG=1
 
 # Use all available cores (no cgroup limiting)
 # Just run on the system with full hardware capability
