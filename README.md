@@ -14,12 +14,6 @@ Performance measurement using LTTng-UST tracepoints.
 | `ringbuffer` | Lock-free | CAS-based circular buffer |
 | `TwoLockHazardPointer` | Lock-free | Michael-Scott unbounded MPMC queue with Hazard Pointers |
 
-## Why Only These Three?
-
-- **Mutex**: Baseline comparison (shows why lock-free matters)
-- **RingBuffer**: Proven lock-free implementation, cache-friendly
-- **TwoLockHazardPointers**: Unbounded, lock-free, solved ABA problem
-
 ## Dependencies
 
 ```
