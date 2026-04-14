@@ -49,6 +49,3 @@ RUNS_PER_CONFIG=10
 ```bash
 # Run full benchmark
 sudo ./run.sh
-
-# Analyze results
-sudo python3 sudo ./analyze_lttng.py --trace-dir=./results/traces/*

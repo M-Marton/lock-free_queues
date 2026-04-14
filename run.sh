@@ -52,24 +52,24 @@ cd ..
 # Simplified matrix for meaningful results
 CONFIGS=(
     # Balanced tests with tight capacity
-#    "8 8 1000000 10"
-#    "8 8 1000000 50"
-#    "8 8 1000000 100"
-#    "8 8 1000000 500"
+    "8 8 1000000 10"
+    "8 8 1000000 50"
+    "8 8 1000000 100"
+    "8 8 1000000 500"
     "8 8 1000000 1000"
     
     # Unbalanced tests (tight capacity)
-#    "14 2 1000000 50"
-#    "2 14 1000000 50"
-#    "15 1 1000000 50"
-#    "1 15 1000000 50"
+    "14 2 1000000 50"
+    "2 14 1000000 50"
+    "15 1 1000000 50"
+    "1 15 1000000 50"
 )
 
 # Queue types
 QUEUES=("mutex" "ringbuffer" "hazard")
 
 TIMEOUT=600  # 10 minutes timeout per test (for 10M items)
-RUNS_PER_CONFIG=1
+RUNS_PER_CONFIG=10
 
 # Use all available cores (no cgroup limiting)
 # Just run on the system with full hardware capability
@@ -217,3 +217,9 @@ echo "Summary CSV: $SUMMARY_CSV"
 # ============================================================================
 echo ""
 echo "Run completed successfully."
+
+# ============================================================================
+# Run analyze_lttng.py
+# ===========================================================================
+
+python3 ./analyze_lttng.py --trace-dir=$TRACE_PATH --output-dir=./results/analysis_$SESSION_NAME
